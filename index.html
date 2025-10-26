@@ -16,19 +16,19 @@
       height: 100vh;
     }
     aside {
-      width: 240px;
+      width: 260px;
       background: #202225;
       display: flex;
       flex-direction: column;
-      padding: 32px 20px;
+      padding: 24px 16px;
       border-right: 1px solid #2a2d2f;
-      gap: 24px;
+      overflow-y: auto;
     }
     .menu-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     }
     .menu-logo {
       font-weight: 600;
@@ -55,17 +55,49 @@
       background: #4BC483;
       transform: scale(1.05);
     }
+    .search-box {
+      margin-bottom: 20px;
+    }
+    .search-input {
+      width: 100%;
+      background: #2a2d2f;
+      border: 1px solid #3a3d3f;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #F3F6F8;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: #72E4A0;
+    }
     .menu-section {
+      margin-bottom: 24px;
+    }
+    .menu-section-header {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
     }
     .menu-title {
       font-size: 12px;
       text-transform: uppercase;
       color: #74cba4;
       font-weight: 600;
-      margin-bottom: 8px;
+    }
+    .show-all-btn {
+      font-size: 11px;
+      color: #72E4A0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .show-all-btn:hover {
+      color: #4BC483;
     }
     .menu-item {
       padding: 8px 12px;
@@ -74,6 +106,10 @@
       transition: background 0.2s;
       font-size: 14px;
       color: #B6BABF;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .menu-item:hover {
       background: #2a2d2f;
@@ -83,15 +119,22 @@
       background: rgba(114, 228, 160, 0.15);
       color: #72E4A0;
     }
+    .item-count {
+      font-size: 12px;
+      color: #6a6d6f;
+      background: #2a2d2f;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 40px 48px;
+      padding: 32px 40px;
       overflow-y: auto;
     }
     .main-header {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .main-title {
       font-size: 28px;
@@ -104,7 +147,7 @@
     }
     .preview-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
     }
     .preview-card {
@@ -120,6 +163,11 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(114, 228, 160, 0.15);
     }
+    .preview-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
     .preview-icon {
       width: 48px;
       height: 48px;
@@ -129,14 +177,26 @@
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .preview-info {
+      flex: 1;
+      min-width: 0;
     }
     .preview-title {
       font-size: 16px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       color: #F3F6F8;
       line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-category {
+      font-size: 12px;
+      color: #74cba4;
+      font-weight: 500;
     }
     .preview-desc {
       font-size: 13px;
@@ -203,7 +263,8 @@
       font-weight: 500;
     }
     .form-group input[type="text"],
-    .form-group textarea {
+    .form-group textarea,
+    .form-group select {
       width: 100%;
       background: #2a2d2f;
       border: 1px solid #3a3d3f;
@@ -249,46 +310,33 @@
       color: #72E4A0;
       font-size: 13px;
     }
-    .tag-input-wrapper {
+    .tag-selector {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      padding: 8px;
+      gap: 8px;
+      padding: 12px;
       background: #2a2d2f;
       border: 1px solid #3a3d3f;
       border-radius: 8px;
-      min-height: 42px;
-      align-items: center;
+      max-height: 200px;
+      overflow-y: auto;
     }
-    .tag-item {
-      background: rgba(114, 228, 160, 0.15);
+    .tag-option {
+      background: rgba(114, 228, 160, 0.1);
       color: #72E4A0;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 6px;
       font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .tag-remove {
       cursor: pointer;
-      font-weight: bold;
-      opacity: 0.7;
-      font-size: 16px;
+      transition: all 0.2s;
+      border: 1px solid transparent;
     }
-    .tag-remove:hover {
-      opacity: 1;
+    .tag-option:hover {
+      background: rgba(114, 228, 160, 0.2);
     }
-    .tag-input {
-      flex: 1;
-      min-width: 120px;
-      background: transparent;
-      border: none;
-      color: #F3F6F8;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      outline: none;
-      padding: 4px;
+    .tag-option.selected {
+      background: rgba(114, 228, 160, 0.25);
+      border-color: #72E4A0;
     }
     .help-text {
       font-size: 12px;
@@ -490,20 +538,30 @@
       <div class="menu-logo">DocStorage</div>
       <button class="add-icon-btn" onclick="openUploadModal()">+</button>
     </div>
+    
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
+    </div>
+
     <div class="menu-section">
-      <div class="menu-title">Категории</div>
-      <div class="menu-item active" onclick="filterDocuments()">Все документы</div>
+      <div class="menu-section-header">
+        <div class="menu-title">Категории</div>
+      </div>
       <div id="categoriesList"></div>
     </div>
+
     <div class="menu-section">
-      <div class="menu-title">Теги</div>
+      <div class="menu-section-header">
+        <div class="menu-title">Теги</div>
+        <button class="show-all-btn" id="showAllTagsBtn" onclick="toggleAllTags()">Показать все</button>
+      </div>
       <div id="tagsList"></div>
     </div>
   </aside>
 
   <main>
     <div class="main-header">
-      <h1 class="main-title">Все документы</h1>
+      <h1 class="main-title" id="mainTitle">Все документы</h1>
       <p class="main-subtitle">Кликните на карточку для просмотра деталей</p>
     </div>
     <div class="preview-grid" id="previewGrid">
@@ -535,25 +593,26 @@
         </div>
 
         <div class="form-group">
-          <label>Категории</label>
-          <div class="tag-input-wrapper" id="categoriesWrapper"></div>
-          <div class="help-text">Введите категорию и нажмите Enter (например: финансы, медицина)</div>
+          <label>Категория *</label>
+          <select id="categorySelect" required>
+            <option value="">Выберите категорию</option>
+          </select>
         </div>
 
         <div class="form-group">
           <label>Теги</label>
-          <div class="tag-input-wrapper" id="tagsWrapper"></div>
-          <div class="help-text">Введите тег и нажмите Enter (например: важное, срочно, 2025)</div>
+          <div class="tag-selector" id="tagSelector"></div>
+          <div class="help-text">Выберите релевантные теги</div>
         </div>
 
         <div class="form-group">
           <label>Действия (что нужно сделать)</label>
-          <textarea id="actionsInput" placeholder="Каждое действие с новой строки, например:&#10;Оплатить до 1 ноября&#10;Согласовать с бухгалтерией&#10;Отправить копию"></textarea>
+          <textarea id="actionsInput" placeholder="Каждое действие с новой строки"></textarea>
         </div>
 
         <div class="form-group">
           <label>Содержание</label>
-          <textarea id="contentInput" placeholder="Основное содержание документа или важные выдержки" style="min-height: 120px;"></textarea>
+          <textarea id="contentInput" placeholder="Основное содержание документа" style="min-height: 120px;"></textarea>
         </div>
 
         <div class="form-buttons">
@@ -576,66 +635,71 @@
     var SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    var PREDEFINED_CATEGORIES = ['Жилье', 'Финансы', 'Работа', 'Идентификация', 'Медицина'];
+    var PREDEFINED_TAGS = ['CAF', 'CADA', 'OFPRA', 'ANEF', 'France Travail', 'Credit Mutuel'];
+    
     var allDocuments = [];
     var currentDocument = null;
-    var categories = [];
-    var tags = [];
+    var selectedTags = [];
+    var showAllTags = false;
+    var currentFilter = { type: 'all', value: null };
 
-    function createTagInput(wrapperId, arrayName) {
-      var wrapper = document.getElementById(wrapperId);
-      var input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'tag-input';
-      input.placeholder = 'Введите и нажмите Enter';
+    function initializeApp() {
+      populateCategorySelect();
+      populateTagSelector();
+      loadDocuments();
       
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          var value = input.value.trim();
-          if (value) {
-            if (arrayName === 'categories') {
-              if (categories.indexOf(value) === -1) {
-                categories.push(value);
-                renderTags(wrapperId, categories, 'categories');
-              }
-            } else {
-              if (tags.indexOf(value) === -1) {
-                tags.push(value);
-                renderTags(wrapperId, tags, 'tags');
-              }
-            }
-            input.value = '';
-          }
-        }
+      document.getElementById('searchInput').addEventListener('input', function(e) {
+        searchDocuments(e.target.value);
       });
-      
-      wrapper.appendChild(input);
     }
 
-    function renderTags(wrapperId, array, arrayName) {
-      var wrapper = document.getElementById(wrapperId);
-      var input = wrapper.querySelector('.tag-input');
-      
-      var existingTags = wrapper.querySelectorAll('.tag-item');
-      for (var i = 0; i < existingTags.length; i++) {
-        existingTags[i].remove();
-      }
-      
-      for (var i = 0; i < array.length; i++) {
-        var tagItem = document.createElement('div');
-        tagItem.className = 'tag-item';
-        tagItem.innerHTML = array[i] + '<span class="tag-remove" onclick="removeTag(\'' + arrayName + '\', ' + i + ')">×</span>';
-        wrapper.insertBefore(tagItem, input);
+    function populateCategorySelect() {
+      var select = document.getElementById('categorySelect');
+      for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
+        var option = document.createElement('option');
+        option.value = PREDEFINED_CATEGORIES[i];
+        option.textContent = PREDEFINED_CATEGORIES[i];
+        select.appendChild(option);
       }
     }
 
-    function removeTag(arrayName, index) {
-      if (arrayName === 'categories') {
-        categories.splice(index, 1);
-        renderTags('categoriesWrapper', categories, 'categories');
+    function populateTagSelector() {
+      var selector = document.getElementById('tagSelector');
+      selector.innerHTML = '';
+      for (var i = 0; i < PREDEFINED_TAGS.length; i++) {
+        var tag = document.createElement('div');
+        tag.className = 'tag-option';
+        tag.textContent = PREDEFINED_TAGS[i];
+        tag.onclick = (function(tagName) {
+          return function() {
+            toggleTag(tagName);
+          };
+        })(PREDEFINED_TAGS[i]);
+        selector.appendChild(tag);
+      }
+    }
+
+    function toggleTag(tagName) {
+      var index = selectedTags.indexOf(tagName);
+      if (index > -1) {
+        selectedTags.splice(index, 1);
       } else {
-        tags.splice(index, 1);
-        renderTags('tagsWrapper', tags, 'tags');
+        selectedTags.push(tagName);
+      }
+      updateTagSelector();
+    }
+
+    function updateTagSelector() {
+      var options = document.querySelectorAll('.tag-option');
+      for (var i = 0; i < options.length; i++) {
+        var tagName = options[i].textContent;
+        if (selectedTags.indexOf(tagName) > -1) {
+          options[i].classList.add('selected');
+        } else {
+          options[i].classList.remove('selected');
+        }
       }
     }
 
@@ -664,13 +728,21 @@
         var doc = documents[i];
         var tagsHtml = '';
         if (doc.tags) {
-          for (var j = 0; j < doc.tags.length; j++) {
+          for (var j = 0; j < Math.min(doc.tags.length, 3); j++) {
             tagsHtml += '<span class="preview-tag">' + doc.tags[j] + '</span>';
           }
+          if (doc.tags.length > 3) {
+            tagsHtml += '<span class="preview-tag">+' + (doc.tags.length - 3) + '</span>';
+          }
         }
+        var category = (doc.categories && doc.categories.length > 0) ? doc.categories[0] : '';
         html += '<div class="preview-card" onclick="openDocumentModal(\'' + doc.id + '\')">' +
+          '<div class="preview-header">' +
           '<div class="preview-icon">📄</div>' +
+          '<div class="preview-info">' +
           '<div class="preview-title">' + (doc.title || 'Без названия') + '</div>' +
+          '<div class="preview-category">' + category + '</div>' +
+          '</div></div>' +
           '<div class="preview-desc">' + (doc.description || 'Нет описания') + '</div>' +
           '<div class="preview-tags">' + tagsHtml + '</div></div>';
       }
@@ -678,52 +750,115 @@
     }
 
     function updateFilters() {
-      var cats = new Set();
-      var tagsSet = new Set();
+      var catCounts = {};
+      var tagCounts = {};
+      
       for (var i = 0; i < allDocuments.length; i++) {
         var doc = allDocuments[i];
         if (doc.categories) {
-          for (var j = 0; j < doc.categories.length; j++) cats.add(doc.categories[j]);
+          for (var j = 0; j < doc.categories.length; j++) {
+            var cat = doc.categories[j];
+            catCounts[cat] = (catCounts[cat] || 0) + 1;
+          }
         }
         if (doc.tags) {
-          for (var j = 0; j < doc.tags.length; j++) tagsSet.add(doc.tags[j]);
+          for (var j = 0; j < doc.tags.length; j++) {
+            var tag = doc.tags[j];
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          }
         }
       }
+
       var catList = document.getElementById('categoriesList');
-      var catHtml = '';
-      cats.forEach(function(cat) {
-        catHtml += '<div class="menu-item">' + cat + '</div>';
-      });
+      var catHtml = '<div class="menu-item' + (currentFilter.type === 'all' ? ' active' : '') + '" onclick="filterByAll()">Все документы<span class="item-count">' + allDocuments.length + '</span></div>';
+      for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
+        var cat = PREDEFINED_CATEGORIES[i];
+        var count = catCounts[cat] || 0;
+        var isActive = currentFilter.type === 'category' && currentFilter.value === cat;
+        catHtml += '<div class="menu-item' + (isActive ? ' active' : '') + '" onclick="filterByCategory(\'' + cat + '\')">' + cat + '<span class="item-count">' + count + '</span></div>';
+      }
       catList.innerHTML = catHtml;
 
       var tagsList = document.getElementById('tagsList');
       var tagsHtml = '';
-      tagsSet.forEach(function(tag) {
-        tagsHtml += '<div class="menu-item">' + tag + '</div>';
-      });
+      var tagsToShow = showAllTags ? Object.keys(tagCounts) : PREDEFINED_TAGS;
+      for (var i = 0; i < tagsToShow.length; i++) {
+        var tag = tagsToShow[i];
+        var count = tagCounts[tag] || 0;
+        if (count > 0) {
+          var isActive = currentFilter.type === 'tag' && currentFilter.value === tag;
+          tagsHtml += '<div class="menu-item' + (isActive ? ' active' : '') + '" onclick="filterByTag(\'' + tag + '\')">' + tag + '<span class="item-count">' + count + '</span></div>';
+        }
+      }
       tagsList.innerHTML = tagsHtml;
     }
 
-    function filterDocuments() {
+    function toggleAllTags() {
+      showAllTags = !showAllTags;
+      var btn = document.getElementById('showAllTagsBtn');
+      btn.textContent = showAllTags ? 'Скрыть' : 'Показать все';
+      updateFilters();
+    }
+
+    function filterByAll() {
+      currentFilter = { type: 'all', value: null };
+      document.getElementById('mainTitle').textContent = 'Все документы';
       renderDocuments(allDocuments);
+      updateFilters();
+    }
+
+    function filterByCategory(category) {
+      currentFilter = { type: 'category', value: category };
+      document.getElementById('mainTitle').textContent = category;
+      var filtered = allDocuments.filter(function(doc) {
+        return doc.categories && doc.categories.indexOf(category) > -1;
+      });
+      renderDocuments(filtered);
+      updateFilters();
+    }
+
+    function filterByTag(tag) {
+      currentFilter = { type: 'tag', value: tag };
+      document.getElementById('mainTitle').textContent = 'Тег: ' + tag;
+      var filtered = allDocuments.filter(function(doc) {
+        return doc.tags && doc.tags.indexOf(tag) > -1;
+      });
+      renderDocuments(filtered);
+      updateFilters();
+    }
+
+    function searchDocuments(query) {
+      if (!query) {
+        renderDocuments(allDocuments);
+        return;
+      }
+      query = query.toLowerCase();
+      var filtered = allDocuments.filter(function(doc) {
+        var titleMatch = doc.title && doc.title.toLowerCase().indexOf(query) > -1;
+        var descMatch = doc.description && doc.description.toLowerCase().indexOf(query) > -1;
+        var tagMatch = doc.tags && doc.tags.some(function(tag) {
+          return tag.toLowerCase().indexOf(query) > -1;
+        });
+        var catMatch = doc.categories && doc.categories.some(function(cat) {
+          return cat.toLowerCase().indexOf(query) > -1;
+        });
+        return titleMatch || descMatch || tagMatch || catMatch;
+      });
+      renderDocuments(filtered);
     }
 
     function openUploadModal() {
-      categories = [];
-      tags = [];
+      selectedTags = [];
       document.getElementById('uploadModal').classList.add('active');
-      document.getElementById('categoriesWrapper').innerHTML = '';
-      document.getElementById('tagsWrapper').innerHTML = '';
-      createTagInput('categoriesWrapper', 'categories');
-      createTagInput('tagsWrapper', 'tags');
+      updateTagSelector();
     }
 
     function closeUploadModal() {
       document.getElementById('uploadModal').classList.remove('active');
       document.getElementById('uploadForm').reset();
       document.getElementById('selectedFile').textContent = '';
-      categories = [];
-      tags = [];
+      selectedTags = [];
+      updateTagSelector();
     }
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -740,6 +875,7 @@
       var file = fileInput.files[0];
       var title = document.getElementById('titleInput').value;
       var description = document.getElementById('descInput').value;
+      var category = document.getElementById('categorySelect').value;
       var actionsText = document.getElementById('actionsInput').value;
       var content = document.getElementById('contentInput').value;
       
@@ -752,7 +888,7 @@
         }
       }
       
-      if (!file) return;
+      if (!file || !category) return;
 
       var uploadBtn = document.getElementById('uploadBtn');
       uploadBtn.disabled = true;
@@ -768,8 +904,8 @@
             file_url: urlData.data.publicUrl,
             title: title,
             description: description,
-            categories: categories,
-            tags: tags,
+            categories: [category],
+            tags: selectedTags,
             actions: actions,
             content: content,
             lang: 'ru',
@@ -892,7 +1028,7 @@
       }
     });
 
-    loadDocuments();
+    initializeApp();
   </script>
 </body>
 </html>
