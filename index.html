@@ -1032,85 +1032,104 @@
 
     // ========== AI AUTOFILL FUNCTION ==========
     async function analyzeDocumentWithGemini(file) {
-      var aiStatus = document.getElementById('aiStatus');
-      aiStatus.className = 'ai-status analyzing';
-      aiStatus.textContent = '🤖 Анализирую документ...';
+  var aiStatus = document.getElementById('aiStatus');
+  aiStatus.className = 'ai-status analyzing';
+  aiStatus.textContent = '🤖 Анализирую документ...';
 
-      try {
-        // Конвертируем файл в base64
-        var reader = new FileReader();
-        var base64Promise = new Promise(function(resolve, reject) {
-          reader.onload = function() {
-            var base64 = reader.result.split(',')[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        
-        var base64Data = await base64Promise;
-        var mimeType = file.type;
+  try {
+    var reader = new FileReader();
+    var base64Promise = new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        var base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    
+    var base64Data = await base64Promise;
+    var mimeType = file.type;
 
-        // Запрос к Gemini API
-        var prompt = 'Проанализируй этот документ и верни JSON со следующими полями:\\n' +
-          '- title: краткое название документа (до 50 символов)\\n' +
-          '- description: краткое описание (1-2 предложения)\\n' +
-          '- category: выбери одну категорию из: Жилье, Финансы, Работа, Идентификация, Медицина\\n' +
-          '- tags: массив релевантных тегов из: CAF, CADA, OFPRA, ANEF, France Travail, Credit Mutuel\\n' +
-          '- actions: массив важной информации (коды, даты, что нужно сделать)\\n' +
-          '- content: краткое резюме основного содержания\\n' +
-          'Верни только валидный JSON без дополнительного текста.';
+    console.log('📤 Отправляю запрос к Gemini API...');
+    console.log('Тип файла:', mimeType);
+    console.log('Размер base64:', base64Data.length, 'символов');
 
-        var response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: prompt },
-                { inline_data: { mime_type: mimeType, data: base64Data } }
-              ]
-            }]
-          })
-        });
+    var prompt = 'Проанализируй этот документ и верни JSON со следующими полями:\\n' +
+      '- title: краткое название документа (до 50 символов)\\n' +
+      '- description: краткое описание (1-2 предложения)\\n' +
+      '- category: выбери одну категорию из: Жилье, Финансы, Работа, Идентификация, Медицина\\n' +
+      '- tags: массив релевантных тегов из: CAF, CADA, OFPRA, ANEF, France Travail, Credit Mutuel\\n' +
+      '- actions: массив важной информации (коды, даты, что нужно сделать)\\n' +
+      '- content: краткое резюме основного содержания\\n' +
+      'Верни только валидный JSON без дополнительного текста.';
 
-        if (!response.ok) throw new Error('API Error');
+    var response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: mimeType, data: base64Data } }
+          ]
+        }]
+      })
+    });
 
-        var data = await response.json();
-        var text = data.candidates[0].content.parts[0].text;
-        
-        // Извлекаем JSON из ответа
-        var jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('No JSON found');
-        
-        var result = JSON.parse(jsonMatch[0]);
+    console.log('📥 Ответ получен. Статус:', response.status, response.statusText);
 
-        // Заполняем форму
-        document.getElementById('titleInput').value = result.title || '';
-        document.getElementById('descInput').value = result.description || '';
-        document.getElementById('categorySelect').value = result.category || '';
-        document.getElementById('actionsInput').value = result.actions ? result.actions.join('\\n') : '';
-        document.getElementById('contentInput').value = result.content || '';
-
-        // Выбираем теги
-        selectedTags = [];
-        if (result.tags && result.tags.length > 0) {
-          for (var i = 0; i < result.tags.length; i++) {
-            if (PREDEFINED_TAGS.indexOf(result.tags[i]) > -1) {
-              selectedTags.push(result.tags[i]);
-            }
-          }
-        }
-        updateTagSelector();
-
-        aiStatus.style.display = 'none';
-      } catch (error) {
-        console.error('AI Error:', error);
-        aiStatus.className = 'ai-status error';
-        aiStatus.textContent = '⚠️ Не удалось проанализировать. Заполните вручную';
-      }
+    if (!response.ok) {
+      var errorText = await response.text();
+      console.error('❌ API вернул ошибку:', errorText);
+      throw new Error('API Error: ' + response.status + ' - ' + errorText.substring(0, 200));
     }
 
+    var data = await response.json();
+    console.log('✅ JSON распарсен:', data);
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error('❌ Неожиданная структура ответа:', data);
+      throw new Error('Unexpected API response structure');
+    }
+
+    var text = data.candidates[0].content.parts[0].text;
+    console.log('📝 Текст ответа от Gemini:', text);
+    
+    var jsonMatch = text.match(/\\{[\\s\\S]*\\}/);
+    if (!jsonMatch) {
+      console.error('❌ JSON не найден в ответе');
+      throw new Error('No JSON found in response');
+    }
+    
+    var result = JSON.parse(jsonMatch[0]);
+    console.log('✅ JSON успешно распарсен:', result);
+
+    document.getElementById('titleInput').value = result.title || '';
+    document.getElementById('descInput').value = result.description || '';
+    document.getElementById('categorySelect').value = result.category || '';
+    document.getElementById('actionsInput').value = result.actions ? result.actions.join('\\n') : '';
+    document.getElementById('contentInput').value = result.content || '';
+
+    selectedTags = [];
+    if (result.tags && result.tags.length > 0) {
+      for (var i = 0; i < result.tags.length; i++) {
+        if (PREDEFINED_TAGS.indexOf(result.tags[i]) > -1) {
+          selectedTags.push(result.tags[i]);
+        }
+      }
+    }
+    updateTagSelector();
+
+    console.log('✅ Форма заполнена успешно!');
+    aiStatus.style.display = 'none';
+  } catch (error) {
+    console.error('❌ AI Error:', error);
+    console.error('Полная ошибка:', error.message);
+    console.error('Stack trace:', error.stack);
+    aiStatus.className = 'ai-status error';
+    aiStatus.textContent = '⚠️ Ошибка: ' + error.message;
+  }
+}
     function loadDocuments() {
       supabase.from('documents').select('*').order('created_at', { ascending: false })
         .then(function(response) {
