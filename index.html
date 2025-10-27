@@ -1256,7 +1256,8 @@
         document.getElementById('titleInput').value = file.name.replace(/\.[^/.]+$/, "");
         
         // Запускаем AI-анализ
-        analyzeDocumentWithGemini(file);
+        // analyzeDocumentWithGemini(file); // Disabled temporarily
+console.log('AI autofill disabled');
       }
     });
 
