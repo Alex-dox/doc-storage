@@ -1527,10 +1527,54 @@
       }
     }
 
-    function switchLanguage(targetLang) {
-      if (!currentDocument || currentDocument.lang === targetLang) return;
-      alert('Перевод временно недоступен. Добавим позже!');
+    async function translateText(text, targetLang) {
+  try {
+    const response = await fetch('https://api.mymemory.translated.net/get?q=' + 
+      encodeURIComponent(text) + 
+      '&langpair=ru|' + (targetLang === 'fr' ? 'fr' : targetLang));
+    const data = await response.json();
+    if (data.responseStatus === 200) {
+      return data.responseData.translatedText;
     }
+    return text;
+  } catch (error) {
+    console.error('Ошибка перевода:', error);
+    return text;
+  }
+}
+
+async function switchLanguage(targetLang) {
+  if (!currentDocument || currentDocument.lang === targetLang) return;
+
+  // Сохраняем оригинал
+  if (!currentDocument.originalTitle) {
+    currentDocument.originalTitle = currentDocument.title;
+    currentDocument.originalDescription = currentDocument.description;
+    currentDocument.originalContent = currentDocument.content;
+  }
+  if (targetLang === 'ru') {
+    currentDocument.title = currentDocument.originalTitle;
+    currentDocument.description = currentDocument.originalDescription;
+    currentDocument.content = currentDocument.originalContent;
+    currentDocument.lang = 'ru';
+  } else {
+    const translatedTitle = await translateText(currentDocument.originalTitle || currentDocument.title, targetLang);
+    const translatedDesc = await translateText(currentDocument.originalDescription || currentDocument.description, targetLang);
+    const translatedContent = await translateText(currentDocument.originalContent || currentDocument.content, targetLang);
+
+    currentDocument.title = translatedTitle;
+    currentDocument.description = translatedDesc;
+    currentDocument.content = translatedContent;
+    currentDocument.lang = targetLang;
+  }
+  renderDocumentDetail(currentDocument);
+
+  // Подсветить выбранную кнопку языка
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector('.lang-btn[data-lang=\"' + targetLang + '\"]').classList.add('active');
+}
 
     function deleteDocument(docId) {
       if (!confirm('Удалить документ?')) return;
