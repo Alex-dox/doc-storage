@@ -1063,16 +1063,12 @@
       '- content: краткое резюме основного содержания\\n' +
       'Верни только валидный JSON без дополнительного текста.';
 
-    var response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' + GEMINI_API_KEY, {
+    var response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inline_data: { mime_type: mimeType, data: base64Data } }
-          ]
-        }]
+        base64Data: base64Data,
+        mimeType: mimeType
       })
     });
 
