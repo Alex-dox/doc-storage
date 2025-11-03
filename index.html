@@ -430,23 +430,47 @@ var ICONS = {
 };
 
 // === Дефолтные значения таксономии (на случай пустого localStorage) ===
-    var DEFAULT_CATEGORIES = ['Жилье', 'Финансы', 'Работа', 'Идентификация', 'Медицина'];
-    var DEFAULT_TAGS = ['CAF', 'CADA', 'OFPRA', 'ANEF', 'France Travail', 'Credit Mutuel'];
+    
+// === Supabase-backed taxonomy (global, synced across devices) ===
+var DEFAULT_CATEGORIES = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
+var DEFAULT_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
 
-    // Текущая таксономия (редактируемая)
-    var PREDEFINED_CATEGORIES = [];
-    var PREDEFINED_TAGS = [];
+var PREDEFINED_CATEGORIES = [];
+var PREDEFINED_TAGS = [];
+var _taxonomyRowId = null; // id of the single row storing taxonomy
 
-    var TAG_COLORS = {
-      'CAF': 'background: rgba(255, 99, 132, 0.2); color: #ff6384;',
-      'CADA': 'background: rgba(54, 162, 235, 0.2); color: #36a2eb;',
-      'OFPRA': 'background: rgba(255, 206, 86, 0.2); color: #ffce56;',
-      'ANEF': 'background: rgba(75, 192, 192, 0.2); color: #4bc0c0;',
-      'France Travail': 'background: rgba(153, 102, 255, 0.2); color: #9966ff;',
-      'Credit Mutuel': 'background: rgba(255, 159, 64, 0.2); color: #ff9f40;'
-    };
+async function ensureTaxonomyRow() {
+  const resp = await supabase.from('taxonomy').select('*').limit(1).maybeSingle();
+  if (resp.error) { console.error('taxonomy select error:', resp.error); throw resp.error; }
+  let row = resp.data;
+  if (!row) {
+    let localCats = []; let localTags = [];
+    try {
+      localCats = JSON.parse(localStorage.getItem('ds_categories') || '[]');
+      localTags = JSON.parse(localStorage.getItem('ds_tags') || '[]');
+    } catch(e) {}
+    const cats = (Array.isArray(localCats) && localCats.length ? localCats : DEFAULT_CATEGORIES).slice();
+    const tags = (Array.isArray(localTags) && localTags.length ? localTags : DEFAULT_TAGS).slice();
+    const ins = await supabase.from('taxonomy').insert({ categories: cats, tags: tags }).select().single();
+    if (ins.error) { console.error('taxonomy insert error:', ins.error); throw ins.error; }
+    row = ins.data;
+    try { localStorage.removeItem('ds_categories'); localStorage.removeItem('ds_tags'); } catch(e) {}
+  }
+  _taxonomyRowId = row.id;
+  PREDEFINED_CATEGORIES = Array.isArray(row.categories) && row.categories.length ? row.categories : DEFAULT_CATEGORIES.slice();
+  PREDEFINED_TAGS = Array.isArray(row.tags) && row.tags.length ? row.tags : DEFAULT_TAGS.slice();
+}
 
-    var allDocuments = [];
+async function loadTaxonomy() { await ensureTaxonomyRow(); }
+async function saveTaxonomy() {
+  if (!_taxonomyRowId) await ensureTaxonomyRow();
+  const { error } = await supabase.from('taxonomy')
+    .update({ categories: PREDEFINED_CATEGORIES, tags: PREDEFINED_TAGS, updated_at: new Date().toISOString() })
+    .eq('id', _taxonomyRowId);
+  if (error) console.error('taxonomy update error:', error);
+}
+
+var allDocuments = [];
     var currentDocument = null;
     var selectedTags = [];
     var selectedEditTags = [];
@@ -473,8 +497,8 @@ var ICONS = {
       return TAG_COLORS[tag] || 'background: rgba(114, 228, 160, 0.2); color: #72E4A0;';
     }
 
-    function initializeApp() {
-      loadTaxonomy();
+    async function initializeApp() {
+      await loadTaxonomy();
       populateCategorySelect();
       populateCategoryFilter();
       populateTagSelector();
