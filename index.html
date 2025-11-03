@@ -281,100 +281,6 @@
 .icon-btn.delete:hover{border-color:#ff6b6b;color:#ff6b6b}
 .icon{width:18px;height:18px;display:block}
 
-
-/* ===== Responsive layout adjustments ===== */
-@media (max-width: 768px) {
-  body {
-    font-size: clamp(14px, 3vw, 16px);
-  }
-  .sidebar {
-    position: fixed;
-    left: -250px;
-    top: 0;
-    width: 220px;
-    height: 100vh;
-    background: rgba(25,27,29,0.96);
-    backdrop-filter: blur(10px);
-    box-shadow: 2px 0 8px rgba(0,0,0,0.3);
-    transition: left 0.3s ease;
-    z-index: 1000;
-    padding-top: 60px;
-  }
-  .sidebar.open {
-    left: 0;
-  }
-  .burger-btn {
-    display: flex;
-    position: fixed;
-    top: 14px;
-    left: 14px;
-    width: 38px;
-    height: 38px;
-    background: #2a2d2f;
-    border: 1px solid #3a3d3f;
-    border-radius: 8px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1100;
-  }
-  .burger-btn span {
-    display: block;
-    width: 20px;
-    height: 2px;
-    background: #f3f6f8;
-    position: relative;
-  }
-  .burger-btn span::before,
-  .burger-btn span::after {
-    content: "";
-    position: absolute;
-    width: 20px;
-    height: 2px;
-    background: #f3f6f8;
-    left: 0;
-    transition: transform 0.3s ease;
-  }
-  .burger-btn span::before {
-    top: -6px;
-  }
-  .burger-btn span::after {
-    top: 6px;
-  }
-  .burger-btn.active span {
-    background: transparent;
-  }
-  .burger-btn.active span::before {
-    transform: rotate(45deg) translate(4px, 4px);
-  }
-  .burger-btn.active span::after {
-    transform: rotate(-45deg) translate(4px, -4px);
-  }
-  .main {
-    margin-left: 0 !important;
-    padding: 80px 12px 40px;
-  }
-  .doc-card, .doc-content, input, textarea, select, button {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  .doc-actions-bar {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .modal-content {
-    width: 90vw !important;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .modal {
-    align-items: flex-start;
-    padding-top: 40px;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -507,16 +413,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ===== Mobile menu toggle =====
-function toggleMenu(){
-  const sidebar=document.querySelector('.sidebar');
-  const burger=document.querySelector('.burger-btn');
-  sidebar.classList.toggle('open');
-  burger.classList.toggle('active');
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     var SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
