@@ -421,6 +421,40 @@
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     
+
+
+// === Supabase-backed taxonomy singleton (global across devices) ===
+var TAXONOMY_ID = '00000000-0000-0000-0000-000000000001';
+var PREDEFINED_CATEGORIES = [];
+var PREDEFINED_TAGS = [];
+
+async function ensureTaxonomyRow(){
+  let { data, error } = await supabase.from('taxonomy').select('*').eq('id', TAXONOMY_ID).single();
+  if (error && (error.code === 'PGRST116' || (error.message||'').includes('0 rows'))) {
+    let cats = []; let tags = [];
+    try { cats = JSON.parse(localStorage.getItem('ds_categories')||'[]'); } catch(e){}
+    try { tags = JSON.parse(localStorage.getItem('ds_tags')||'[]'); } catch(e){}
+    const DEF_CATS = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
+    const DEF_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
+    cats = (Array.isArray(cats)&&cats.length?cats:DEF_CATS).slice();
+    tags = (Array.isArray(tags)&&tags.length?tags:DEF_TAGS).slice();
+    const ins = await supabase.from('taxonomy').upsert({ id: TAXONOMY_ID, categories: cats, tags: tags, updated_at: new Date().toISOString() }).select().single();
+    if (ins.error) throw ins.error;
+    data = ins.data;
+    try { localStorage.removeItem('ds_categories'); localStorage.removeItem('ds_tags'); } catch(e){}
+  } else if (error) { throw error; }
+  PREDEFINED_CATEGORIES = Array.isArray(data.categories)?data.categories:[];
+  PREDEFINED_TAGS = Array.isArray(data.tags)?data.tags:[];
+}
+
+async function loadTaxonomy(){ await ensureTaxonomyRow(); }
+async function saveTaxonomy(){
+  const { error } = await supabase.from('taxonomy').upsert({
+    id: TAXONOMY_ID, categories: PREDEFINED_CATEGORIES, tags: PREDEFINED_TAGS, updated_at: new Date().toISOString()
+  });
+  if (error) console.error('taxonomy save error:', error);
+}
+
 // SVG icon set for card actions (minimal, dark)
 var ICONS = {
   eye:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>',
@@ -430,57 +464,6 @@ var ICONS = {
 };
 
 // === Дефолтные значения таксономии (на случай пустого localStorage) ===
-    
-// === Supabase-backed taxonomy (global, synced across devices) ===
-var DEFAULT_CATEGORIES = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
-var DEFAULT_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
-
-var PREDEFINED_CATEGORIES = [];
-var PREDEFINED_TAGS = [];
-var _taxonomyRowId = null; // id of the single row storing taxonomy
-
-async function ensureTaxonomyRow() {
-  const resp = await supabase.from('taxonomy').select('*').limit(1).maybeSingle();
-  if (resp.error) { console.error('taxonomy select error:', resp.error); throw resp.error; }
-  let row = resp.data;
-  if (!row) {
-    let localCats = []; let localTags = [];
-    try {
-      localCats = JSON.parse(localStorage.getItem('ds_categories') || '[]');
-      localTags = JSON.parse(localStorage.getItem('ds_tags') || '[]');
-    } catch(e) {}
-    const cats = (Array.isArray(localCats) && localCats.length ? localCats : DEFAULT_CATEGORIES).slice();
-    const tags = (Array.isArray(localTags) && localTags.length ? localTags : DEFAULT_TAGS).slice();
-    const ins = await supabase.from('taxonomy').insert({ categories: cats, tags: tags }).select().single();
-    if (ins.error) { console.error('taxonomy insert error:', ins.error); throw ins.error; }
-    row = ins.data;
-    try { localStorage.removeItem('ds_categories'); localStorage.removeItem('ds_tags'); } catch(e) {}
-  }
-  _taxonomyRowId = row.id;
-  PREDEFINED_CATEGORIES = Array.isArray(row.categories) && row.categories.length ? row.categories : DEFAULT_CATEGORIES.slice();
-  PREDEFINED_TAGS = Array.isArray(row.tags) && row.tags.length ? row.tags : DEFAULT_TAGS.slice();
-}
-
-async function loadTaxonomy() { await ensureTaxonomyRow(); }
-async function saveTaxonomy() {
-  if (!_taxonomyRowId) await ensureTaxonomyRow();
-  const { error } = await supabase.from('taxonomy')
-    .update({ categories: PREDEFINED_CATEGORIES, tags: PREDEFINED_TAGS, updated_at: new Date().toISOString() })
-    .eq('id', _taxonomyRowId);
-  if (error) console.error('taxonomy update error:', error);
-}
-
-var allDocuments = [];
-    var currentDocument = null;
-    var selectedTags = [];
-    var selectedEditTags = [];
-    var selectedSearchTags = [];
-    var isEditMode = false;
-
-    function saveTaxonomy() {
-      localStorage.setItem('ds_categories', JSON.stringify(PREDEFINED_CATEGORIES));
-      localStorage.setItem('ds_tags', JSON.stringify(PREDEFINED_TAGS));
-    }
     function loadTaxonomy() {
       try {
         var cats = JSON.parse(localStorage.getItem('ds_categories') || '[]');
@@ -497,7 +480,7 @@ var allDocuments = [];
       return TAG_COLORS[tag] || 'background: rgba(114, 228, 160, 0.2); color: #72E4A0;';
     }
 
-    async function initializeApp() {
+    async function initializeApp(){
       await loadTaxonomy();
       populateCategorySelect();
       populateCategoryFilter();
