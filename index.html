@@ -413,7 +413,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+async function loadTaxonomy(){ await ensureTaxonomyRow(); }
+</script>
   <script>
     var SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
@@ -447,30 +449,7 @@ async function ensureTaxonomyRow(){
   PREDEFINED_TAGS = Array.isArray(data.tags)?data.tags:[];
 }
 
-async function loadTaxonomy(){ await ensureTaxonomyRow(); }
-async function saveTaxonomy(){
-  const { error } = await supabase.from('taxonomy').upsert({
-    id: TAXONOMY_ID, categories: PREDEFINED_CATEGORIES, tags: PREDEFINED_TAGS, updated_at: new Date().toISOString()
-  });
-  if (error) console.error('taxonomy save error:', error);
-}
-
-// SVG icon set for card actions (minimal, dark)
-var ICONS = {
-  eye:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>',
-  edit:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="1.6"/></svg>',
-  download:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.6"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6"/><path d="M4 21h16" stroke="currentColor" stroke-width="1.6"/></svg>',
-  trash:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5h6v2" stroke="currentColor" stroke-width="1.6"/><path d="M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="1.6"/></svg>'
-};
-
-// === Дефолтные значения таксономии (на случай пустого localStorage) ===
-    function loadTaxonomy() {
-      try {
-        var cats = JSON.parse(localStorage.getItem('ds_categories') || '[]');
-        var tags = JSON.parse(localStorage.getItem('ds_tags') || '[]');
-        PREDEFINED_CATEGORIES = Array.isArray(cats) && cats.length ? cats : DEFAULT_CATEGORIES.slice();
-        PREDEFINED_TAGS = Array.isArray(tags) && tags.length ? tags : DEFAULT_TAGS.slice();
-      } catch(e) {
+async catch(e) {
         PREDEFINED_CATEGORIES = DEFAULT_CATEGORIES.slice();
         PREDEFINED_TAGS = DEFAULT_TAGS.slice();
       }
