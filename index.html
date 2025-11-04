@@ -1,287 +1,137 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>DocStorage</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Supabase SDK (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ТВОЙ проект Supabase
+    const SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
+
+    // Единый клиент (используем далее как `supabase`)
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Диагностика ранних ошибок
+    window.addEventListener('error', e => console.error('Runtime error:', e.error || e.message));
+    window.addEventListener('unhandledrejection', e => console.error('Unhandled:', e.reason));
+  </script>
+
   <style>
     * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: #181A1B;
-      color: #F3F6F8;
-      margin: 0;
-      display: flex;
-      height: 100vh;
-    }
-    aside {
-      width: 260px;
-      background: #202225;
-      display: flex;
-      flex-direction: column;
-      padding: 24px 16px;
-      border-right: 1px solid #2a2d2f;
-      overflow-y: auto;
-    }
-    .menu-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .menu-logo {
-      font-weight: 600;
-      font-size: 20px;
-      color: #72E4A0;
-    }
-    .add-icon-btn {
-      width: 32px;
-      height: 32px;
-      background: #72E4A0;
-      color: #181A1B;
-      border: none;
-      border-radius: 6px;
-      font-size: 20px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      line-height: 1;
-    }
-    .add-icon-btn:hover {
-      background: #4BC483;
-      transform: scale(1.05);
-    }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#181A1B; color:#F3F6F8; margin:0; display:flex; height:100vh; }
+    aside { width:260px; background:#202225; display:flex; flex-direction:column; padding:24px 16px; border-right:1px solid #2a2d2f; overflow-y:auto; }
+    .menu-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+    .menu-logo{font-weight:600;font-size:20px;color:#72E4A0;}
+    .add-icon-btn{width:32px;height:32px;background:#72E4A0;color:#181A1B;border:none;border-radius:6px;font-size:20px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1;}
+    .add-icon-btn:hover{background:#4BC483;transform:scale(1.05);}
+    .section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+    .gear-btn{width:26px;height:26px;border:none;border-radius:6px;background:#2a2d2f;color:#B6BABF;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;transition:.2s;}
+    .gear-btn:hover{background:#3a3d3f;color:#F3F6F8;}
+    .search-section{margin-bottom:20px;}
+    .search-label{font-size:11px;color:#74cba4;font-weight:600;text-transform:uppercase;}
+    .and-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:#B6BABF;user-select:none;}
+    .search-input{width:100%;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;padding:10px 12px;color:#F3F6F8;font-size:14px;margin-bottom:10px;}
+    .search-input:focus{outline:none;border-color:#72E4A0;}
+    .search-tags-container{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+    .search-tag{padding:4px 8px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;}
+    .search-tag-remove{font-weight:bold;opacity:.7;}
+    .search-tag-remove:hover{opacity:1;}
+    .tag-suggestions{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+    .tag-suggestion{padding:3px 8px;border-radius:6px;font-size:11px;cursor:pointer;transition:opacity .2s;}
+    .tag-suggestion:hover{opacity:.8;}
+    .menu-section{margin-bottom:24px;}
+    .menu-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .menu-title{font-size:12px;text-transform:uppercase;color:#74cba4;font-weight:600;}
+    .menu-item{padding:8px 12px;border-radius:8px;cursor:pointer;transition:background .2s;font-size:14px;color:#B6BABF;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;}
+    .menu-item:hover{background:#2a2d2f;color:#F3F6F8;}
+    .menu-item.active{background:rgba(114,228,160,.15);color:#72E4A0;}
+    .item-count{font-size:12px;color:#6a6d6f;background:#2a2d2f;padding:2px 6px;border-radius:4px;}
+    main{flex:1;display:flex;flex-direction:column;padding:32px 40px;overflow-y:auto;}
+    .main-header{margin-bottom:24px;}
+    .main-title{font-size:28px;font-weight:600;margin:0 0 8px 0;}
+    .main-subtitle{font-size:15px;color:#B6BABF;}
+    .preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+    .preview-card{background:#212324;border-radius:12px;padding:20px;cursor:pointer;transition:.2s;border:2px solid transparent;}
+    .preview-card:hover{border-color:#72E4A0;transform:translateY(-2px);box-shadow:0 4px 12px rgba(114,228,160,.15);}
+    .preview-header{display:flex;gap:12px;margin-bottom:12px;}
+    .preview-icon{width:48px;height:48px;background:#2a2d2f;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+    .preview-info{flex:1;min-width:0;}
+    .preview-title{font-size:16px;font-weight:600;margin-bottom:4px;color:#F3F6F8;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .preview-category{font-size:12px;color:#74cba4;font-weight:500;}
+    .preview-desc{font-size:13px;color:#B6BABF;line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .preview-tags{display:flex;gap:6px;flex-wrap:wrap;}
+    .preview-tag{font-size:11px;border-radius:6px;padding:3px 8px;}
+    .upload-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(24,26,27,.85);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:40px;overflow-y:auto;}
+    .upload-modal.active{display:flex;}
+    .upload-form{background:#212324;border-radius:16px;max-width:600px;width:100%;padding:32px 28px;max-height:90vh;overflow-y:auto;}
+    .upload-form h2{margin:0 0 24px 0;font-size:22px;color:#F3F6F8;}
+    .form-group{margin-bottom:20px;}
+    .form-group label{display:block;margin-bottom:8px;color:#74cba4;font-size:14px;font-weight:500;}
+    .form-group input[type="text"],.form-group textarea,.form-group select{width:100%;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;padding:10px 12px;color:#F3F6F8;font-size:14px;}
+    .form-group textarea{resize:vertical;min-height:80px;}
+    .file-input-wrapper{position:relative;background:#2a2d2f;border:2px dashed #72E4A0;border-radius:8px;padding:30px;text-align:center;cursor:pointer;transition:.2s;}
+    .file-input-wrapper:hover{background:#323537;border-color:#4BC483;}
+    .file-input-wrapper input[type="file"]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;}
+    .file-input-label{color:#B6BABF;font-size:14px;}
+    .selected-file{margin-top:12px;color:#72E4A0;font-size:13px;}
+    .ai-status{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:13px;display:none;}
+    .ai-status.analyzing{display:block;background:rgba(114,228,160,.1);color:#72E4A0;border:1px solid rgba(114,228,160,.3);}
+    .ai-status.error{display:block;background:rgba(255,159,64,.1);color:#ff9f40;border:1px solid rgba(255,159,64,.3);}
+    .tag-selector{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;max-height:200px;overflow-y:auto;}
+    .tag-option{background:rgba(114,228,160,.1);color:#72E4A0;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;transition:.2s;border:1px solid transparent;}
+    .tag-option:hover{background:rgba(114,228,160,.2);}
+    .tag-option.selected{background:rgba(114,228,160,.25);border-color:#72E4A0;}
+    .help-text{font-size:12px;color:#6a6d6f;margin-top:4px;}
+    .form-buttons{display:flex;gap:12px;margin-top:24px;}
+    .btn{flex:1;padding:12px 24px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;}
+    .btn-primary{background:#72E4A0;color:#181A1B;}
+    .btn-primary:hover{background:#4BC483;}
+    .btn-primary:disabled{background:#3a3d3f;color:#6a6d6f;cursor:not-allowed;}
+    .btn-secondary{background:transparent;color:#B6BABF;border:1px solid #3a3d3f;}
+    .btn-secondary:hover{background:#2a2d2f;}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(24,26,27,.85);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:40px;}
+    .modal-overlay.active{display:flex;}
+    .modal-card{background:#212324;border-radius:16px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;position:relative;padding:32px 28px 28px;animation:modalSlideIn .3s ease;}
+    @keyframes modalSlideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+    .close-btn{position:absolute;top:20px;right:20px;width:32px;height:32px;border:none;background:#2a2d2f;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;color:#B6BABF;font-size:20px;z-index:10;}
+    .close-btn:hover{background:#72E4A0;color:#181A1B;}
+    .preview-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(24,26,27,.95);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:2000;padding:40px;}
+    .preview-modal.active{display:flex;}
+    .preview-container{background:#212324;border-radius:16px;max-width:90vw;max-height:90vh;width:100%;height:100%;position:relative;display:flex;flex-direction:column;overflow:hidden;}
+    .preview-header{padding:20px 24px;border-bottom:1px solid #2a2d2f;display:flex;align-items:center;justify-content:space-between;}
+    .preview-title-text{font-size:18px;font-weight:600;color:#F3F6F8;}
+    .preview-content{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .preview-content iframe{width:100%;height:100%;border:none;border-radius:8px;}
+    .preview-content img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;}
+    .loading{text-align:center;padding:40px;color:#B6BABF;}
 
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .gear-btn {
-      width: 26px;
-      height: 26px;
-      border: none;
-      border-radius: 6px;
-      background: #2a2d2f;
-      color: #B6BABF;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      transition: all .2s;
-    }
-    .gear-btn:hover { background:#3a3d3f; color:#F3F6F8; }
+    /* Док-карта */
+    .settings-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#2a2d2f;color:#DEE6EA;font-size:13px;}
+    .chip button{border:none;background:transparent;color:#ff6b6b;font-size:14px;cursor:pointer;padding:0 2px;}
 
-    .search-section { margin-bottom: 20px; }
-    .search-label {
-      font-size: 11px;
-      color: #74cba4;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .and-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #B6BABF;
-      user-select: none;
-    }
-    .search-input {
-      width: 100%;
-      background: #2a2d2f;
-      border: 1px solid #3a3d3f;
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: #F3F6F8;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-    .search-input:focus { outline: none; border-color: #72E4A0; }
-    .search-tags-container {
-      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
-    }
-    .search-tag {
-      padding: 4px 8px; border-radius: 6px; font-size: 12px;
-      display: flex; align-items: center; gap: 4px; cursor: pointer;
-    }
-    .search-tag-remove { font-weight: bold; opacity: 0.7; }
-    .search-tag-remove:hover { opacity: 1; }
-    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-    .tag-suggestion {
-      padding: 3px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: opacity 0.2s;
-    }
-    .tag-suggestion:hover { opacity: 0.8; }
-
-    .menu-section { margin-bottom: 24px; }
-    .menu-section-header {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
-    }
-    .menu-title { font-size: 12px; text-transform: uppercase; color: #74cba4; font-weight: 600; }
-    .menu-item {
-      padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background 0.2s;
-      font-size: 14px; color: #B6BABF; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;
-    }
-    .menu-item:hover { background: #2a2d2f; color: #F3F6F8; }
-    .menu-item.active { background: rgba(114, 228, 160, 0.15); color: #72E4A0; }
-    .item-count { font-size: 12px; color: #6a6d6f; background: #2a2d2f; padding: 2px 6px; border-radius: 4px; }
-
-    main { flex: 1; display: flex; flex-direction: column; padding: 32px 40px; overflow-y: auto; }
-    .main-header { margin-bottom: 24px; }
-    .main-title { font-size: 28px; font-weight: 600; margin: 0 0 8px 0; }
-    .main-subtitle { font-size: 15px; color: #B6BABF; }
-
-    .preview-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;
-    }
-    .preview-card {
-      background: #212324; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
-    }
-    .preview-card:hover {
-      border-color: #72E4A0; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(114, 228, 160, 0.15);
-    }
-    .preview-header { display: flex; gap: 12px; margin-bottom: 12px; }
-    .preview-icon {
-      width: 48px; height: 48px; background: #2a2d2f; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
-    }
-    .preview-info { flex: 1; min-width: 0; }
-    .preview-title {
-      font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #F3F6F8; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .preview-category { font-size: 12px; color: #74cba4; font-weight: 500; }
-    .preview-desc {
-      font-size: 13px; color: #B6BABF; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .preview-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-    .preview-tag { font-size: 11px; border-radius: 6px; padding: 3px 8px; }
-
-    .upload-modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(24, 26, 27, 0.85); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 40px; overflow-y: auto;
-    }
-    .upload-modal.active { display: flex; }
-    .upload-form {
-      background: #212324; border-radius: 16px; max-width: 600px; width: 100%; padding: 32px 28px; max-height: 90vh; overflow-y: auto;
-    }
-    .upload-form h2 { margin: 0 0 24px 0; font-size: 22px; color: #F3F6F8; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; color: #74cba4; font-size: 14px; font-weight: 500; }
-    .form-group input[type="text"], .form-group textarea, .form-group select {
-      width: 100%; background: #2a2d2f; border: 1px solid #3a3d3f; border-radius: 8px; padding: 10px 12px; color: #F3F6F8; font-family: 'Inter', sans-serif; font-size: 14px;
-    }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .file-input-wrapper {
-      position: relative; background: #2a2d2f; border: 2px dashed #72E4A0; border-radius: 8px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s;
-    }
-    .file-input-wrapper:hover { background: #323537; border-color: #4BC483; }
-    .file-input-wrapper input[type="file"] {
-      position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;
-    }
-    .file-input-label { color: #B6BABF; font-size: 14px; }
-    .selected-file { margin-top: 12px; color: #72E4A0; font-size: 13px; }
-    .ai-status { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 13px; display: none; }
-    .ai-status.analyzing { display: block; background: rgba(114, 228, 160, 0.1); color: #72E4A0; border: 1px solid rgba(114, 228, 160, 0.3); }
-    .ai-status.error { display: block; background: rgba(255, 159, 64, 0.1); color: #ff9f40; border: 1px solid rgba(255, 159, 64, 0.3); }
-
-    .tag-selector {
-      display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #2a2d2f; border: 1px solid #3a3d3f; border-radius: 8px; max-height: 200px; overflow-y: auto;
-    }
-    .tag-option {
-      background: rgba(114, 228, 160, 0.1); color: #72E4A0; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
-    }
-    .tag-option:hover { background: rgba(114, 228, 160, 0.2); }
-    .tag-option.selected { background: rgba(114, 228, 160, 0.25); border-color: #72E4A0; }
-    .help-text { font-size: 12px; color: #6a6d6f; margin-top: 4px; }
-    .form-buttons { display: flex; gap: 12px; margin-top: 24px; }
-    .btn {
-      flex: 1; padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
-    }
-    .btn-primary { background: #72E4A0; color: #181A1B; }
-    .btn-primary:hover { background: #4BC483; }
-    .btn-primary:disabled { background: #3a3d3f; color: #6a6d6f; cursor: not-allowed; }
-    .btn-secondary { background: transparent; color: #B6BABF; border: 1px solid #3a3d3f; }
-    .btn-secondary:hover { background: #2a2d2f; }
-
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(24, 26, 27, 0.85); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 40px;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-card {
-      background: #212324; border-radius: 16px; max-width: 700px; width: 100%;
-      max-height: 90vh; overflow-y: auto; position: relative; padding: 32px 28px 28px 28px; animation: modalSlideIn 0.3s ease;
-    }
-    @keyframes modalSlideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .close-btn {
-      position: absolute; top: 20px; right: 20px; width: 32px; height: 32px; border: none;
-      background: #2a2d2f; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; color: #B6BABF; font-size: 20px; z-index: 10;
-    }
-    .close-btn:hover { background: #72E4A0; color: #181A1B; }
-
-    /* Просмотр файла */
-    .preview-modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(24, 26, 27, 0.95); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 2000; padding: 40px;
-    }
-    .preview-modal.active { display: flex; }
-    .preview-container {
-      background: #212324; border-radius: 16px; max-width: 90vw; max-height: 90vh; width: 100%; height: 100%;
-      position: relative; display: flex; flex-direction: column; overflow: hidden;
-    }
-    .preview-header {
-      padding: 20px 24px; border-bottom: 1px solid #2a2d2f; display: flex; align-items: center; justify-content: space-between;
-    }
-    .preview-title-text { font-size: 18px; font-weight: 600; color: #F3F6F8; }
-    .preview-content { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .preview-content iframe { width: 100%; height: 100%; border: none; border-radius: 8px; }
-    .preview-content img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
-    .loading { text-align: center; padding: 40px; color: #B6BABF; }
-
-    /* Settings list */
-    .settings-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: #2a2d2f; color: #DEE6EA; font-size: 13px;
-    }
-    .chip button {
-      border: none; background: transparent; color: #ff6b6b; font-size: 14px; cursor: pointer; padding: 0 2px;
-    }
-    .settings-row { display: flex; gap: 8px; }
-    .settings-row input {
-      flex: 1; background:#2a2d2f; border:1px solid #3a3d3f; border-radius:8px; padding:10px 12px; color:#F3F6F8; font-size:14px;
-    }
-  
-/* ---- Card view polish (scoped classes) ---- */
-.doc-title{font-size:20px;font-weight:600;margin:0 0 8px 0;color:#F3F6F8;}
-.doc-desc{font-size:13px;color:#B6BABF;line-height:1.6;margin-bottom:8px;}
-.doc-section{padding:12px 0;border-top:1px solid #2a2d2f;}
-.doc-section:first-of-type{border-top:none;padding-top:0;}
-.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#74cba4;font-weight:600;margin-bottom:8px}
-.doc-tags{display:flex;flex-wrap:wrap;gap:6px}
-.doc-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;font-size:12px;background:#2a2d2f;color:#DEE6EA;border:1px solid #3a3d3f}
-.doc-actions-list{margin:0;padding-left:18px}
-.doc-actions-list.collapsed li:nth-child(n+6){display:none}
-.show-more-actions{margin-top:8px;background:#2a2d2f;border:1px solid #3a3d3f;color:#B6BABF;border-radius:8px;padding:8px 10px;cursor:pointer}
-.show-more-actions:hover{background:#303335;color:#F3F6F8}
-.doc-actions-bar{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid #3a3d3f;background:#2a2d2f;color:#B6BABF;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
-.icon-btn:hover{background:#303335;color:#F3F6F8}
-.icon-btn.delete:hover{border-color:#ff6b6b;color:#ff6b6b}
-.icon{width:18px;height:18px;display:block}
-
-</style>
+    .doc-title{font-size:20px;font-weight:600;margin:0 0 8px 0;color:#F3F6F8;}
+    .doc-desc{font-size:13px;color:#B6BABF;line-height:1.6;margin-bottom:8px;}
+    .doc-section{padding:12px 0;border-top:1px solid #2a2d2f;}
+    .doc-section:first-of-type{border-top:none;padding-top:0;}
+    .section-label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#74cba4;font-weight:600;margin-bottom:8px;}
+    .doc-tags{display:flex;flex-wrap:wrap;gap:6px;}
+    .doc-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;font-size:12px;background:#2a2d2f;color:#DEE6EA;border:1px solid #3a3d3f;}
+    .doc-actions-list{margin:0;padding-left:18px;}
+    .doc-actions-list.collapsed li:nth-child(n+6){display:none;}
+    .show-more-actions{margin-top:8px;background:#2a2d2f;border:1px solid #3a3d3f;color:#B6BABF;border-radius:8px;padding:8px 10px;cursor:pointer;}
+    .show-more-actions:hover{background:#303335;color:#F3F6F8;}
+    .doc-actions-bar{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+    .icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid #3a3d3f;background:#2a2d2f;color:#B6BABF;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;}
+    .icon-btn:hover{background:#303335;color:#F3F6F8;}
+    .icon-btn.delete:hover{border-color:#ff6b6b;color:#ff6b6b;}
+    .icon{width:18px;height:18px;display:block;}
+  </style>
 </head>
 <body>
   <aside>
@@ -292,30 +142,32 @@
 
     <div class="search-section">
       <div class="search-label">Поиск по тексту</div>
-      <input type="text" class="search-input" id="textSearch" placeholder="Название, описание...">
+      <input type="text" class="search-input" id="textSearch" placeholder="Название, описание..." />
     </div>
 
     <div class="search-section">
       <div class="section-header">
         <div class="search-label">Теги</div>
-        <button class="gear-btn" title="Управление тегами" onclick="openSettings('tags')"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 12c0-.5.05-1 .15-1.47l-1.9-1.1 2-3.46 1.9 1.1c.7-.56 1.5-1 2.36-1.3V3h4v2.77c.86.3 1.66.74 2.36 1.3l1.9-1.1 2 3.46-1.9 1.1c.1.47.15.97.15 1.47s-.05 1-.15 1.47l1.9 1.1-2 3.46-1.9-1.1c-.7.56-1.5 1-2.36 1.3V21h-4v-2.77c-.86-.3-1.66-.74-2.36-1.3l-1.9 1.1-2-3.46 1.9-1.1c-.1-.47-.15-.97-.15-1.47Z" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        <button class="gear-btn" title="Управление тегами" onclick="openSettings('tags')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 12c0-.5.05-1 .15-1.47l-1.9-1.1 2-3.46 1.9 1.1c.7-.56 1.5-1 2.36-1.3V3h4v2.77c.86.3 1.66.74 2.36 1.3l1.9-1.1 2 3.46-1.9 1.1c.1.47.15.97.15 1.47s-.05 1-.15 1.47l1.9 1.1-2 3.46-1.9-1.1c-.7.56-1.5 1-2.36 1.3V21h-4v-2.77c-.86-.3-1.66-.74-2.36-1.3l-1.9 1.1-2-3.46 1.9-1.1c-.1-.47-.15-.97-.15-1.47Z" stroke="currentColor" stroke-width="1.6"/></svg>
+        </button>
       </div>
       <div class="search-tags-container" id="selectedSearchTags"></div>
       <div class="tag-suggestions" id="tagSuggestions"></div>
-      <label class="and-toggle"><input type="checkbox" id="tagsAndMode"> Все теги</label>
+      <label class="and-toggle"><input type="checkbox" id="tagsAndMode" /> Все теги</label>
     </div>
 
     <div class="search-section">
       <div class="section-header">
         <div class="search-label">Категория</div>
-        <button class="gear-btn" title="Управление категориями" onclick="openSettings('categories')"><svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 12c0-.5.05-1 .15-1.47l-1.9-1.1 2-3.46 1.9 1.1c.7-.56 1.5-1 2.36-1.3V3h4v2.77c.86.3 1.66.74 2.36 1.3l1.9-1.1 2 3.46-1.9 1.1c.1.47.15.97.15 1.47s-.05 1-.15 1.47l1.9 1.1-2 3.46-1.9-1.1c-.7.56-1.5 1-2.36 1.3V21h-4v-2.77c-.86-.3-1.66-.74-2.36-1.3l-1.9 1.1-2-3.46 1.9-1.1c-.1-.47-.15-.97-.15-1.47Z" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        <button class="gear-btn" title="Управление категориями" onclick="openSettings('categories')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.6"/><path d="M4 12c0-.5.05-1 .15-1.47l-1.9-1.1 2-3.46 1.9 1.1c.7-.56 1.5-1 2.36-1.3V3h4v2.77c.86.3 1.66.74 2.36 1.3l1.9-1.1 2 3.46-1.9 1.1c.1.47.15.97.15 1.47s-.05 1-.15 1.47l1.9 1.1-2 3.46-1.9-1.1c-.7.56-1.5 1-2.36 1.3V21h-4v-2.77c-.86-.3-1.66-.74-2.36-1.3l-1.9 1.1-2-3.46 1.9-1.1c-.1-.47-.15-.97-.15-1.47Z" stroke="currentColor" stroke-width="1.6"/></svg>
+        </button>
       </div>
       <select class="search-input" id="categoryFilter">
         <option value="">Все категории</option>
       </select>
     </div>
-
-    <!-- УДАЛЕНО: нижний раздел «Категории» с быстрыми ссылками -->
   </aside>
 
   <main>
@@ -328,6 +180,7 @@
     </div>
   </main>
 
+  <!-- Upload -->
   <div class="upload-modal" id="uploadModal">
     <div class="upload-form">
       <h2>Загрузить документ</h2>
@@ -335,7 +188,7 @@
         <div class="form-group">
           <label>Файл *</label>
           <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" required>
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" required />
             <div class="file-input-label">Выберите файл (PDF, JPEG, PNG)</div>
             <div class="selected-file" id="selectedFile"></div>
             <div class="ai-status" id="aiStatus"></div>
@@ -344,7 +197,7 @@
 
         <div class="form-group">
           <label>Название *</label>
-          <input type="text" id="titleInput" placeholder="Название документа" required>
+          <input type="text" id="titleInput" placeholder="Название документа" required />
         </div>
 
         <div class="form-group">
@@ -372,7 +225,7 @@
 
         <div class="form-group">
           <label>Содержание</label>
-          <textarea id="contentInput" placeholder="Основное содержание документа" style="min-height: 120px;"></textarea>
+          <textarea id="contentInput" placeholder="Основное содержание документа" style="min-height:120px;"></textarea>
         </div>
 
         <div class="form-buttons">
@@ -383,7 +236,7 @@
     </div>
   </div>
 
-  <!-- Карточка документа (без переключателя языков) -->
+  <!-- Док карточка -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
       <button class="close-btn" onclick="closeModal()">×</button>
@@ -391,7 +244,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно настроек тегов/категорий -->
+  <!-- Настройки -->
   <div class="modal-overlay" id="settingsOverlay" onclick="closeSettingsOnOverlay(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
       <button class="close-btn" onclick="closeSettings()">×</button>
@@ -413,74 +266,67 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    var SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
-    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
-    var GEMINI_API_KEY = 'AIzaSyBqGYEAw2ZMr-n-GG2EoyEZlkRyMtQl8bs';
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    
-// SVG icon set for card actions (minimal, dark)
-var ICONS = {
-  eye:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>',
-  edit:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="1.6"/></svg>',
-  download:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.6"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6"/><path d="M4 21h16" stroke="currentColor" stroke-width="1.6"/></svg>',
-  trash:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5h6v2" stroke="currentColor" stroke-width="1.6"/><path d="M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="1.6"/></svg>'
-};
-
-// === Дефолтные значения таксономии (на случай пустого localStorage) ===
-    var DEFAULT_CATEGORIES = ['Жилье', 'Финансы', 'Работа', 'Идентификация', 'Медицина'];
-    var DEFAULT_TAGS = ['CAF', 'CADA', 'OFPRA', 'ANEF', 'France Travail', 'Credit Mutuel'];
-
-    // Текущая таксономия (редактируемая)
-    var PREDEFINED_CATEGORIES = [];
-    var PREDEFINED_TAGS = [];
-
-    var TAG_COLORS = {
-      'CAF': 'background: rgba(255, 99, 132, 0.2); color: #ff6384;',
-      'CADA': 'background: rgba(54, 162, 235, 0.2); color: #36a2eb;',
-      'OFPRA': 'background: rgba(255, 206, 86, 0.2); color: #ffce56;',
-      'ANEF': 'background: rgba(75, 192, 192, 0.2); color: #4bc0c0;',
-      'France Travail': 'background: rgba(153, 102, 255, 0.2); color: #9966ff;',
-      'Credit Mutuel': 'background: rgba(255, 159, 64, 0.2); color: #ff9f40;'
+    // ==== Константы ====
+    const DEFAULT_CATEGORIES = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
+    const DEFAULT_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
+    const TAG_COLORS = {
+      'CAF':'background: rgba(255,99,132,.2); color:#ff6384;',
+      'CADA':'background: rgba(54,162,235,.2); color:#36a2eb;',
+      'OFPRA':'background: rgba(255,206,86,.2); color:#ffce56;',
+      'ANEF':'background: rgba(75,192,192,.2); color:#4bc0c0;',
+      'France Travail':'background: rgba(153,102,255,.2); color:#9966ff;',
+      'Credit Mutuel':'background: rgba(255,159,64,.2); color:#ff9f40;'
     };
 
-    var allDocuments = [];
-    var currentDocument = null;
-    var selectedTags = [];
-    var selectedEditTags = [];
-    var selectedSearchTags = [];
-    var isEditMode = false;
+    // ==== Состояние ====
+    let PREDEFINED_CATEGORIES = [];
+    let PREDEFINED_TAGS = [];
+    let allDocuments = [];
+    let currentDocument = null;
+    let selectedTags = [];
+    let selectedEditTags = [];
+    let selectedSearchTags = [];
+    let isEditMode = false;
 
-    
-    async function saveTaxonomy() {
-      // noop: таксономия теперь хранится в Supabase
-    }
-    async function loadTaxonomy() {
-      try {
+    // ==== Утилиты ====
+    function getTagStyle(tag){ return TAG_COLORS[tag] || 'background: rgba(114,228,160,.2); color:#72E4A0;'; }
+
+    // ==== Инициализация ====
+    async function loadTaxonomy(){
+      try{
         const { data, error } = await supabase
-          .from('taxonomy')
-          .select('categories, tags')
+          .from('taxonomy').select('categories,tags')
           .eq('slug','global')
           .single();
-        if (error) throw error;
+        if(error) throw error;
         PREDEFINED_CATEGORIES = Array.isArray(data?.categories) && data.categories.length ? data.categories.slice() : DEFAULT_CATEGORIES.slice();
         PREDEFINED_TAGS = Array.isArray(data?.tags) && data.tags.length ? data.tags.slice() : DEFAULT_TAGS.slice();
-      } catch(e) {
+      }catch(e){
         console.warn('loadTaxonomy fallback:', e?.message || e);
         PREDEFINED_CATEGORIES = DEFAULT_CATEGORIES.slice();
         PREDEFINED_TAGS = DEFAULT_TAGS.slice();
       }
     }
 
-
-    function getTagStyle(tag) {
-      return TAG_COLORS[tag] || 'background: rgba(114, 228, 160, 0.2); color: #72E4A0;';
+    async function loadDocuments(){
+      try{
+        const { data, error } = await supabase
+          .from('documents')
+          .select('*')
+          .order('created_at',{ascending:false});
+        if(error) throw error;
+        allDocuments = data || [];
+        applyFilters();
+        updateFilters();
+        updateTagSuggestions();
+      }catch(e){
+        console.error('Ошибка загрузки:', e);
+        document.getElementById('previewGrid').innerHTML = '<div class="loading">Ошибка загрузки</div>';
+      }
     }
 
-    
-    async function initializeApp() {
+    async function initializeApp(){
       await loadTaxonomy();
       populateCategorySelect();
       populateCategoryFilter();
@@ -495,798 +341,376 @@ var ICONS = {
       initRealtime();
     }
 
-
-    function populateCategorySelect() {
-      var select = document.getElementById('categorySelect');
+    // ==== UI заполнение списков ====
+    function populateCategorySelect(){
+      const select = document.getElementById('categorySelect');
       select.innerHTML = '<option value="">Выберите категорию</option>';
-      for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
-        var option = document.createElement('option');
-        option.value = PREDEFINED_CATEGORIES[i];
-        option.textContent = PREDEFINED_CATEGORIES[i];
-        select.appendChild(option);
-      }
+      PREDEFINED_CATEGORIES.forEach(c=>{
+        const o=document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
+      });
     }
-
-    function populateCategoryFilter() {
-      var select = document.getElementById('categoryFilter');
-      var current = select.value || '';
+    function populateCategoryFilter(){
+      const select = document.getElementById('categoryFilter');
+      const current = select.value || '';
       select.innerHTML = '<option value="">Все категории</option>';
-      for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
-        var option = document.createElement('option');
-        option.value = PREDEFINED_CATEGORIES[i];
-        option.textContent = PREDEFINED_CATEGORIES[i];
-        select.appendChild(option);
-      }
-      // восстановим предыдущий выбор, если он ещё существует
-      if (current && PREDEFINED_CATEGORIES.indexOf(current) > -1) {
-        select.value = current;
-      }
+      PREDEFINED_CATEGORIES.forEach(c=>{
+        const o=document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
+      });
+      if(current && PREDEFINED_CATEGORIES.includes(current)) select.value=current;
     }
-
-    function populateTagSelector() {
-      var selector = document.getElementById('tagSelector');
-      selector.innerHTML = '';
-      for (var i = 0; i < PREDEFINED_TAGS.length; i++) {
-        var tag = document.createElement('div');
-        tag.className = 'tag-option';
-        tag.textContent = PREDEFINED_TAGS[i];
-        tag.onclick = (function(tagName) {
-          return function() { toggleTag(tagName); };
-        })(PREDEFINED_TAGS[i]);
-        selector.appendChild(tag);
-      }
+    function populateTagSelector(){
+      const wrap = document.getElementById('tagSelector');
+      wrap.innerHTML = '';
+      PREDEFINED_TAGS.forEach(t=>{
+        const el = document.createElement('div');
+        el.className='tag-option'; el.textContent=t;
+        el.onclick=()=>toggleTag(t);
+        wrap.appendChild(el);
+      });
       updateTagSelector();
     }
-
-    function populateEditTagSelector() {
-      var selector = document.getElementById('editTagSelector');
-      if (!selector) return;
-      selector.innerHTML = '';
-      for (var i = 0; i < PREDEFINED_TAGS.length; i++) {
-        var tag = document.createElement('div');
-        tag.className = 'tag-option';
-        tag.textContent = PREDEFINED_TAGS[i];
-        if (selectedEditTags.indexOf(PREDEFINED_TAGS[i]) > -1) tag.classList.add('selected');
-        tag.onclick = (function(tagName) {
-          return function() { toggleEditTag(tagName); };
-        })(PREDEFINED_TAGS[i]);
-        selector.appendChild(tag);
-      }
+    function populateEditTagSelector(){
+      const wrap = document.getElementById('editTagSelector');
+      if(!wrap) return;
+      wrap.innerHTML='';
+      PREDEFINED_TAGS.forEach(t=>{
+        const el=document.createElement('div');
+        el.className='tag-option'; el.textContent=t;
+        if(selectedEditTags.includes(t)) el.classList.add('selected');
+        el.onclick=()=>toggleEditTag(t);
+        wrap.appendChild(el);
+      });
     }
-
-    function toggleEditTag(tagName) {
-      var index = selectedEditTags.indexOf(tagName);
-      if (index > -1) selectedEditTags.splice(index, 1); else selectedEditTags.push(tagName);
-      populateEditTagSelector();
+    function toggleTag(t){ const i=selectedTags.indexOf(t); if(i>-1) selectedTags.splice(i,1); else selectedTags.push(t); updateTagSelector(); }
+    function updateTagSelector(){
+      document.querySelectorAll('#tagSelector .tag-option').forEach(el=>{
+        const t=el.textContent; el.classList.toggle('selected', selectedTags.includes(t));
+      });
     }
+    function toggleEditTag(t){ const i=selectedEditTags.indexOf(t); if(i>-1) selectedEditTags.splice(i,1); else selectedEditTags.push(t); populateEditTagSelector(); }
 
-    function updateTagSuggestions() {
-      var allTags = [];
-      for (var i = 0; i < allDocuments.length; i++) {
-        if (allDocuments[i].tags) {
-          for (var j = 0; j < allDocuments[i].tags.length; j++) {
-            var tag = allDocuments[i].tags[j];
-            if (allTags.indexOf(tag) === -1 && selectedSearchTags.indexOf(tag) === -1) {
-              allTags.push(tag);
-            }
-          }
+    // ==== Поиск/фильтры ====
+    function addSearchTag(tag){ if(!selectedSearchTags.includes(tag)){ selectedSearchTags.push(tag); renderSearchTags(); updateTagSuggestions(); applyFilters(); } }
+    function removeSearchTag(tag){ const i=selectedSearchTags.indexOf(tag); if(i>-1){ selectedSearchTags.splice(i,1); renderSearchTags(); updateTagSuggestions(); applyFilters(); } }
+    function renderSearchTags(){
+      const c=document.getElementById('selectedSearchTags'); c.innerHTML='';
+      selectedSearchTags.forEach(tag=>{
+        const el=document.createElement('div'); el.className='search-tag'; el.style.cssText=getTagStyle(tag);
+        el.innerHTML = `${tag} <span class="search-tag-remove" onclick="removeSearchTag('${tag}')">×</span>`;
+        c.appendChild(el);
+      });
+    }
+    function updateTagSuggestions(){
+      let all=[];
+      allDocuments.forEach(d=> (d.tags||[]).forEach(t=>{ if(!all.includes(t)&&!selectedSearchTags.includes(t)) all.push(t); }));
+      if(all.length===0) PREDEFINED_TAGS.forEach(t=>{ if(!selectedSearchTags.includes(t)) all.push(t); });
+      const c=document.getElementById('tagSuggestions'); c.innerHTML='';
+      all.slice(0,6).forEach(t=>{
+        const el=document.createElement('div'); el.className='tag-suggestion'; el.textContent=t; el.style.cssText=getTagStyle(t); el.onclick=()=>addSearchTag(t); c.appendChild(el);
+      });
+    }
+    function applyFilters(){
+      const q=(document.getElementById('textSearch').value||'').toLowerCase();
+      const cat=document.getElementById('categoryFilter').value;
+      const andMode=document.getElementById('tagsAndMode').checked;
+
+      const filtered = allDocuments.filter(doc=>{
+        const textMatch=!q || (doc.title&&doc.title.toLowerCase().includes(q)) || (doc.description&&doc.description.toLowerCase().includes(q));
+        const catMatch=!cat || ((doc.categories||[]).includes(cat));
+        let tagsMatch=true;
+        if(selectedSearchTags.length){
+          const tags=doc.tags||[];
+          tagsMatch = andMode ? selectedSearchTags.every(t=>tags.includes(t)) : selectedSearchTags.some(t=>tags.includes(t));
         }
-      }
-      // если в документах нет тегов — подсказываем из пресета
-      if (allTags.length === 0) {
-        for (var k = 0; k < PREDEFINED_TAGS.length; k++) {
-          var t = PREDEFINED_TAGS[k];
-          if (selectedSearchTags.indexOf(t) === -1) allTags.push(t);
-        }
-      }
-      var container = document.getElementById('tagSuggestions');
-      container.innerHTML = '';
-      for (var i = 0; i < Math.min(allTags.length, 6); i++) {
-        var tag = allTags[i];
-        var el = document.createElement('div');
-        el.className = 'tag-suggestion';
-        el.textContent = tag;
-        el.style.cssText = getTagStyle(tag);
-        el.onclick = (function(tagName) {
-          return function() { addSearchTag(tagName); };
-        })(tag);
-        container.appendChild(el);
-      }
-    }
-
-    function addSearchTag(tag) {
-      if (selectedSearchTags.indexOf(tag) === -1) {
-        selectedSearchTags.push(tag);
-        renderSearchTags();
-        updateTagSuggestions();
-        applyFilters();
-      }
-    }
-    function removeSearchTag(tag) {
-      var index = selectedSearchTags.indexOf(tag);
-      if (index > -1) {
-        selectedSearchTags.splice(index, 1);
-        renderSearchTags();
-        updateTagSuggestions();
-        applyFilters();
-      }
-    }
-    function renderSearchTags() {
-      var container = document.getElementById('selectedSearchTags');
-      container.innerHTML = '';
-      for (var i = 0; i < selectedSearchTags.length; i++) {
-        var tag = selectedSearchTags[i];
-        var el = document.createElement('div');
-        el.className = 'search-tag';
-        el.style.cssText = getTagStyle(tag);
-        el.innerHTML = tag + ' <span class="search-tag-remove" onclick="removeSearchTag(\'' + tag + '\')">×</span>';
-        container.appendChild(el);
-      }
-    }
-
-    function toggleTag(tagName) {
-      var index = selectedTags.indexOf(tagName);
-      if (index > -1) selectedTags.splice(index, 1); else selectedTags.push(tagName);
-      updateTagSelector();
-    }
-    function updateTagSelector() {
-      var options = document.querySelectorAll('#tagSelector .tag-option');
-      for (var i = 0; i < options.length; i++) {
-        var tagName = options[i].textContent;
-        if (selectedTags.indexOf(tagName) > -1) options[i].classList.add('selected'); else options[i].classList.remove('selected');
-      }
-    }
-
-    // ========== AI AUTOFILL FUNCTION ==========
-    async function analyzeDocumentWithGemini(file) {
-      var aiStatus = document.getElementById('aiStatus');
-      aiStatus.className = 'ai-status analyzing';
-      aiStatus.textContent = '🤖 Анализирую документ...';
-      try {
-        var reader = new FileReader();
-        var base64Promise = new Promise(function(resolve, reject) {
-          reader.onload = function() { var base64 = reader.result.split(',')[1]; resolve(base64); };
-          reader.onerror = reject; reader.readAsDataURL(file);
-        });
-        var base64Data = await base64Promise;
-        var mimeType = file.type;
-
-        var prompt = 'Проанализируй этот документ и верни JSON со следующими полями:\\n' +
-          '- title: краткое название документа (до 50 символов)\\n' +
-          '- description: краткое описание (1-2 предложения)\\n' +
-          '- category: выбери одну категорию из: ' + PREDEFINED_CATEGORIES.join(', ') + '\\n' +
-          '- tags: массив релевантных тегов из: ' + PREDEFINED_TAGS.join(', ') + '\\n' +
-          '- actions: массив важной информации (коды, даты, что нужно сделать)\\n' +
-          '- content: краткое резюме основного содержания\\n' +
-          'Верни только валидный JSON без дополнительного текста.';
-
-        var response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [ { text: prompt }, { inline_data: { mime_type: mimeType, data: base64Data } } ] }]
-          })
-        });
-        if (!response.ok) throw new Error('API Error');
-
-        var data = await response.json();
-        var text = data.candidates[0].content.parts[0].text;
-        var jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('No JSON found');
-        var result = JSON.parse(jsonMatch[0]);
-
-        document.getElementById('titleInput').value = result.title || '';
-        document.getElementById('descInput').value = result.description || '';
-        document.getElementById('categorySelect').value = result.category || '';
-        document.getElementById('actionsInput').value = result.actions ? result.actions.join('\n') : '';
-        document.getElementById('contentInput').value = result.content || '';
-
-        selectedTags = [];
-        if (result.tags && result.tags.length > 0) {
-          for (var i = 0; i < result.tags.length; i++) {
-            if (PREDEFINED_TAGS.indexOf(result.tags[i]) > -1) selectedTags.push(result.tags[i]);
-          }
-        }
-        updateTagSelector();
-        aiStatus.style.display = 'none';
-      } catch (error) {
-        console.error('AI Error:', error);
-        aiStatus.className = 'ai-status error';
-        aiStatus.textContent = '⚠️ Не удалось проанализировать. Заполните вручную';
-      }
-    }
-
-    function loadDocuments() {
-      supabase.from('documents').select('*').order('created_at', { ascending: false })
-        .then(function(response) {
-          if (response.error) throw response.error;
-          allDocuments = response.data || [];
-          applyFilters();
-          updateFilters(); // безопасно — ничего не делает, если список категорий в меню отсутствует
-          updateTagSuggestions();
-        })
-        .catch(function(error) {
-          console.error('Ошибка загрузки:', error);
-          document.getElementById('previewGrid').innerHTML = '<div class="loading">Ошибка загрузки</div>';
-        });
-    }
-
-    function applyFilters() {
-      var textQuery = (document.getElementById('textSearch').value || '').toLowerCase();
-      var categoryFilter = document.getElementById('categoryFilter').value;
-      var andMode = document.getElementById('tagsAndMode').checked;
-
-      var filtered = allDocuments.filter(function(doc) {
-        var textMatch = !textQuery ||
-          (doc.title && doc.title.toLowerCase().indexOf(textQuery) > -1) ||
-          (doc.description && doc.description.toLowerCase().indexOf(textQuery) > -1);
-
-        var categoryMatch = !categoryFilter || (doc.categories && doc.categories.indexOf(categoryFilter) > -1);
-
-        var tagsMatch = true;
-        if (selectedSearchTags.length > 0) {
-          if (andMode) {
-            // режим И: документ должен содержать все выбранные теги
-            tagsMatch = doc.tags && selectedSearchTags.every(function(tag){ return doc.tags.indexOf(tag) > -1; });
-          } else {
-            // режим ИЛИ: документ должен содержать хотя бы один из выбранных тегов
-            tagsMatch = doc.tags && selectedSearchTags.some(function(tag){ return doc.tags.indexOf(tag) > -1; });
-          }
-        }
-
-        return textMatch && categoryMatch && tagsMatch;
+        return textMatch && catMatch && tagsMatch;
       });
 
       renderDocuments(filtered);
     }
+    function renderDocuments(list){
+      const grid=document.getElementById('previewGrid');
+      if(!list.length){ grid.innerHTML='<div class="loading">Нет документов</div>'; return; }
+      grid.innerHTML = list.map(doc=>{
+        const tags=(doc.tags||[]).slice(0,3).map(t=>`<span class="preview-tag" style="${getTagStyle(t)}">${t}</span>`).join('') +
+                      ((doc.tags||[]).length>3?`<span class="preview-tag" style="background: rgba(114,228,160,.2); color:#72E4A0;">+${(doc.tags.length-3)}</span>`:'');
+        const cat=(doc.categories&&doc.categories[0])||'';
+        return `
+          <div class="preview-card" onclick="openDocumentModal('${doc.id}')">
+            <div class="preview-header">
+              <div class="preview-icon">📄</div>
+              <div class="preview-info">
+                <div class="preview-title">${doc.title||'Без названия'}</div>
+                <div class="preview-category">${cat}</div>
+              </div>
+            </div>
+            <div class="preview-desc">${doc.description||'Нет описания'}</div>
+            <div class="preview-tags">${tags}</div>
+          </div>`;
+      }).join('');
+    }
+    function updateFilters(){
+      const catList=document.getElementById('categoriesList'); if(!catList) return;
+      const counts={};
+      allDocuments.forEach(d=>(d.categories||[]).forEach(c=>counts[c]=(counts[c]||0)+1));
+      let html=`<div class="menu-item active" onclick="clearFilters()">Все документы<span class="item-count">${allDocuments.length}</span></div>`;
+      PREDEFINED_CATEGORIES.forEach(c=>{ html+=`<div class="menu-item" onclick="quickFilterCategory('${c}')">${c}<span class="item-count">${counts[c]||0}</span></div>`; });
+      catList.innerHTML=html;
+    }
+    function clearFilters(){ document.getElementById('textSearch').value=''; document.getElementById('categoryFilter').value=''; document.getElementById('tagsAndMode').checked=false; selectedSearchTags=[]; renderSearchTags(); updateTagSuggestions(); applyFilters(); }
+    function quickFilterCategory(c){ document.getElementById('categoryFilter').value=c; applyFilters(); }
 
-    function renderDocuments(documents) {
-      var grid = document.getElementById('previewGrid');
-      if (documents.length === 0) {
-        grid.innerHTML = '<div class="loading">Нет документов</div>';
-        return;
+    // ==== Модалки загрузки ====
+    function openUploadModal(){ selectedTags=[]; document.getElementById('uploadModal').classList.add('active'); updateTagSelector(); }
+    function closeUploadModal(){ document.getElementById('uploadModal').classList.remove('active'); document.getElementById('uploadForm').reset(); document.getElementById('selectedFile').textContent=''; document.getElementById('aiStatus').style.display='none'; selectedTags=[]; updateTagSelector(); }
+
+    // ==== AI автозаполнение ====
+    const GEMINI_API_KEY = 'AIzaSyBqGYEAw2ZMr-n-GG2EoyEZlkRyMtQl8bs';
+    async function analyzeDocumentWithGemini(file){
+      const aiStatus=document.getElementById('aiStatus');
+      aiStatus.className='ai-status analyzing'; aiStatus.textContent='🤖 Анализирую документ...';
+      try{
+        const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+        const prompt = 'Проанализируй этот документ и верни JSON со следующими полями:\n- title...\n- description...\n- category из: '+PREDEFINED_CATEGORIES.join(', ')+'\n- tags из: '+PREDEFINED_TAGS.join(', ')+'\n- actions[]\n- content\nВерни только валидный JSON без дополнительного текста.';
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_API_KEY, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ contents:[{ parts:[{text:prompt},{ inline_data:{ mime_type:file.type, data:base64 } }]}] })
+        });
+        if(!resp.ok) throw new Error('API Error');
+        const data = await resp.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const json = JSON.parse((text.match(/\{[\s\S]*\}/)||['{}'])[0]);
+        document.getElementById('titleInput').value = json.title || '';
+        document.getElementById('descInput').value = json.description || '';
+        document.getElementById('categorySelect').value = json.category || '';
+        document.getElementById('actionsInput').value = (json.actions||[]).join('\n');
+        document.getElementById('contentInput').value = json.content || '';
+        selectedTags = (json.tags||[]).filter(t=>PREDEFINED_TAGS.includes(t));
+        updateTagSelector();
+        aiStatus.style.display='none';
+      }catch(e){
+        console.error('AI Error:', e);
+        aiStatus.className='ai-status error'; aiStatus.textContent='⚠️ Не удалось проанализировать. Заполните вручную';
       }
-      var html = '';
-      for (var i = 0; i < documents.length; i++) {
-        var doc = documents[i];
-        var tagsHtml = '';
-        if (doc.tags) {
-          for (var j = 0; j < Math.min(doc.tags.length, 3); j++) {
-            var tag = doc.tags[j];
-            tagsHtml += '<span class="preview-tag" style="' + getTagStyle(tag) + '">' + tag + '</span>';
-          }
-          if (doc.tags.length > 3) {
-            tagsHtml += '<span class="preview-tag" style="background: rgba(114, 228, 160, 0.2); color: #72E4A0;">+' + (doc.tags.length - 3) + '</span>';
-          }
-        }
-        var category = (doc.categories && doc.categories.length > 0) ? doc.categories[0] : '';
-        html += '<div class="preview-card" onclick="openDocumentModal(\'' + doc.id + '\')">' +
-          '<div class="preview-header">' +
-          '<div class="preview-icon">📄</div>' +
-          '<div class="preview-info">' +
-          '<div class="preview-title">' + (doc.title || 'Без названия') + '</div>' +
-          '<div class="preview-category">' + category + '</div>' +
-          '</div></div>' +
-          '<div class="preview-desc">' + (doc.description || 'Нет описания') + '</div>' +
-          '<div class="preview-tags">' + tagsHtml + '</div></div>';
-      }
-      grid.innerHTML = html;
     }
 
-    // осталась безопасная заглушка — если блока категорий нет, просто выходим
-    function updateFilters() {
-      var catList = document.getElementById('categoriesList');
-      if (!catList) return;
-      var catCounts = {};
-      for (var i = 0; i < allDocuments.length; i++) {
-        var doc = allDocuments[i];
-        if (doc.categories) {
-          for (var j = 0; j < doc.categories.length; j++) {
-            var cat = doc.categories[j];
-            catCounts[cat] = (catCounts[cat] || 0) + 1;
-          }
-        }
-      }
-      var catHtml = '<div class="menu-item active" onclick="clearFilters()">Все документы<span class="item-count">' + allDocuments.length + '</span></div>';
-      for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
-        var cat = PREDEFINED_CATEGORIES[i];
-        var count = catCounts[cat] || 0;
-        catHtml += '<div class="menu-item" onclick="quickFilterCategory(\'' + cat + '\')">' + cat + '<span class="item-count">' + count + '</span></div>';
-      }
-      catList.innerHTML = catHtml;
-    }
-
-    function clearFilters() {
-      document.getElementById('textSearch').value = '';
-      document.getElementById('categoryFilter').value = '';
-      document.getElementById('tagsAndMode').checked = false;
-      selectedSearchTags = [];
-      renderSearchTags();
-      updateTagSuggestions();
-      applyFilters();
-    }
-    function quickFilterCategory(cat) {
-      var sel = document.getElementById('categoryFilter');
-      sel.value = cat;
-      applyFilters();
-    }
-
-    function openUploadModal() {
-      selectedTags = [];
-      document.getElementById('uploadModal').classList.add('active');
-      updateTagSelector();
-    }
-    function closeUploadModal() {
-      document.getElementById('uploadModal').classList.remove('active');
-      document.getElementById('uploadForm').reset();
-      document.getElementById('selectedFile').textContent = '';
-      document.getElementById('aiStatus').style.display = 'none';
-      selectedTags = [];
-      updateTagSelector();
-    }
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-      var file = e.target.files[0];
-      if (file) {
-        document.getElementById('selectedFile').textContent = 'Выбран: ' + file.name;
-        document.getElementById('titleInput').value = file.name.replace(/\.[^/.]+$/, "");
+    // ==== Загрузка файлов/создание документа ====
+    document.getElementById('fileInput').addEventListener('change', e=>{
+      const file=e.target.files[0];
+      if(file){
+        document.getElementById('selectedFile').textContent='Выбран: '+file.name;
+        document.getElementById('titleInput').value=file.name.replace(/\.[^/.]+$/,'');
         analyzeDocumentWithGemini(file);
       }
     });
 
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    document.getElementById('uploadForm').addEventListener('submit', async e=>{
       e.preventDefault();
-      var fileInput = document.getElementById('fileInput');
-      var file = fileInput.files[0];
-      var title = document.getElementById('titleInput').value;
-      var description = document.getElementById('descInput').value;
-      var category = document.getElementById('categorySelect').value;
-      var actionsText = document.getElementById('actionsInput').value;
-      var content = document.getElementById('contentInput').value;
+      const file = document.getElementById('fileInput').files[0];
+      const title = document.getElementById('titleInput').value;
+      const description = document.getElementById('descInput').value;
+      const category = document.getElementById('categorySelect').value;
+      const actionsText = document.getElementById('actionsInput').value;
+      const contentText = document.getElementById('contentInput').value;
+      if(!file || !category) return;
 
-      var actions = [];
-      if (actionsText) {
-        var lines = actionsText.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          var line = lines[i].trim();
-          if (line) actions.push(line);
-        }
-      }
-      if (!file || !category) return;
-
-      var uploadBtn = document.getElementById('uploadBtn');
-      uploadBtn.disabled = true;
-      uploadBtn.textContent = 'Загрузка...';
-
-      var fileName = Date.now() + '_' + file.name;
-      supabase.storage.from('documents').upload(fileName, file)
-        .then(function(uploadResponse) {
-          if (uploadResponse.error) throw uploadResponse.error;
-          var urlData = supabase.storage.from('documents').getPublicUrl(fileName);
-          return supabase.from('documents').insert([{
-            filename: file.name,
-            file_url: urlData.data.publicUrl,
-            title: title,
-            description: description,
-            categories: [category],
-            tags: selectedTags,
-            actions: actions,
-            content: content,
-            lang: 'ru',
-            ai_filled: true
-          }]).select();
-        })
-        .then(function(docResponse) {
-          if (docResponse.error) throw docResponse.error;
-          alert('Документ загружен!');
-          closeUploadModal();
-          loadDocuments();
-        })
-        .catch(function(error) {
-          console.error('Ошибка:', error);
-          alert('Ошибка: ' + error.message);
-        })
-        .finally(function() {
-          uploadBtn.disabled = false;
-          uploadBtn.textContent = 'Загрузить';
-        });
+      const actions = actionsText ? actionsText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+      const btn = document.getElementById('uploadBtn'); btn.disabled=true; btn.textContent='Загрузка...';
+      try{
+        const fileName = Date.now()+'_'+file.name;
+        const up = await supabase.storage.from('documents').upload(fileName, file);
+        if(up.error) throw up.error;
+        const { data:pub } = supabase.storage.from('documents').getPublicUrl(fileName);
+        const ins = await supabase.from('documents').insert([{
+          filename:file.name, file_url:pub.publicUrl, title, description,
+          categories:[category], tags:selectedTags, actions, content:contentText, lang:'ru', ai_filled:true
+        }]).select();
+        if(ins.error) throw ins.error;
+        alert('Документ загружен!');
+        closeUploadModal();
+        loadDocuments();
+      }catch(e){ console.error('Ошибка:', e); alert('Ошибка: '+e.message); }
+      finally{ btn.disabled=false; btn.textContent='Загрузить'; }
     });
 
-    function previewDocument() {
-      if (!currentDocument) return;
-      document.getElementById('previewTitle').textContent = currentDocument.title || 'Без названия';
-      var content = document.getElementById('previewContent');
-      var fileExt = currentDocument.filename.split('.').pop().toLowerCase();
-      if (fileExt === 'pdf') {
-        content.innerHTML = '<iframe src="' + currentDocument.file_url + '#toolbar=1&navpanes=0&scrollbar=1"></iframe>';
-      } else if (fileExt === 'jpg' || fileExt === 'jpeg' || fileExt === 'png') {
-        content.innerHTML = '<img src="' + currentDocument.file_url + '" alt="' + (currentDocument.title || 'Документ') + '">';
-      } else {
-        content.innerHTML = '<div class="loading">Предпросмотр недоступен для этого типа файла</div>';
-      }
-      document.getElementById('previewModal').classList.add('active');
-      document.body.style.overflow = 'hidden';
+    // ==== Просмотр и редактирование документа ====
+    function previewDocument(){
+      if(!currentDocument) return;
+      document.getElementById('previewTitle').textContent=currentDocument.title||'Без названия';
+      const c=document.getElementById('previewContent');
+      const ext=(currentDocument.filename.split('.').pop()||'').toLowerCase();
+      if(ext==='pdf'){ c.innerHTML=`<iframe src="${currentDocument.file_url}#toolbar=1&navpanes=0&scrollbar=1"></iframe>`; }
+      else if(['jpg','jpeg','png'].includes(ext)){ c.innerHTML=`<img src="${currentDocument.file_url}" alt="${currentDocument.title||'Документ'}">`; }
+      else { c.innerHTML='<div class="loading">Предпросмотр недоступен для этого типа файла</div>'; }
+      document.getElementById('previewModal').classList.add('active'); document.body.style.overflow='hidden';
     }
-    function closePreview(event) {
-      if (!event || event.target.id === 'previewModal') {
-        document.getElementById('previewModal').classList.remove('active');
-        document.body.style.overflow = 'auto';
-      }
+    function closePreview(e){ if(!e || e.target.id==='previewModal'){ document.getElementById('previewModal').classList.remove('active'); document.body.style.overflow='auto'; } }
+
+    function openDocumentModal(id){
+      currentDocument = allDocuments.find(d=>d.id===id); if(!currentDocument) return;
+      isEditMode=false; renderDocumentCard();
+      document.getElementById('modalOverlay').classList.add('active'); document.body.style.overflow='hidden';
     }
+    function closeModal(){ document.getElementById('modalOverlay').classList.remove('active'); document.body.style.overflow='auto'; currentDocument=null; isEditMode=false; }
+    function closeModalOnOverlay(e){ if(e.target.id==='modalOverlay') closeModal(); }
 
-    function openDocumentModal(docId) {
-      var doc = null;
-      for (var i = 0; i < allDocuments.length; i++) {
-        if (allDocuments[i].id === docId) { doc = allDocuments[i]; break; }
-      }
-      if (!doc) return;
-      currentDocument = doc;
-      isEditMode = false;
-      renderDocumentCard();
-      document.getElementById('modalOverlay').classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function renderDocumentCard() {
-      if (!currentDocument) return;
-      var doc = currentDocument;
-
-      if (isEditMode) {
-        selectedEditTags = doc.tags ? doc.tags.slice() : [];
-        var actionsText = (doc.actions && doc.actions.length > 0) ? doc.actions.join('\n') : '';
-
-        var content = '<div class="doc-title-edit">' +
-          '<input type="text" class="editable-input" id="editTitle" value="' + (doc.title || '') + '" placeholder="Название документа">' +
-          '</div>' +
-          '<div class="doc-desc-edit">' +
-          '<textarea class="editable-input" id="editDesc" placeholder="Описание документа" style="min-height: 60px;">' + (doc.description || '') + '</textarea>' +
-          '</div>';
-
-        content += '<div class="doc-fields-row">' +
-          '<div class="doc-field-title">Категория:</div>' +
-          '<div style="flex: 1;"><select class="editable-input" id="editCategory">';
-        for (var i = 0; i < PREDEFINED_CATEGORIES.length; i++) {
-          var selected = (doc.categories && doc.categories[0] === PREDEFINED_CATEGORIES[i]) ? ' selected' : '';
-          content += '<option value="' + PREDEFINED_CATEGORIES[i] + '"' + selected + '>' + PREDEFINED_CATEGORIES[i] + '</option>';
-        }
-        content += '</select></div></div>';
-
-        content += '<div class="doc-fields-row">' +
-          '<div class="doc-field-title">Теги:</div>' +
-          '<div class="tag-selector" id="editTagSelector" style="flex: 1;"></div>' +
-          '</div>';
-
-        content += '<div class="doc-fields-row">' +
-          '<div class="doc-field-title">Действия:</div>' +
-          '<div style="flex: 1;"><textarea class="editable-input" id="editActions" placeholder="Каждое действие с новой строки" style="min-height: 100px;">' + actionsText + '</textarea></div>' +
-          '</div>';
-
-        content += '<div class="doc-fields-row">' +
-          '<div class="doc-field-title">Содержание:</div>' +
-          '<div style="flex: 1;"><textarea class="editable-input" id="editContent" placeholder="Содержание документа" style="min-height: 120px;">' + (doc.content || '') + '</textarea></div>' +
-          '</div>';
-
-        content += '<div class="edit-buttons">' +
-          '<button class="btn btn-secondary" onclick="cancelEdit()">Отмена</button>' +
-          '<button class="btn btn-primary" onclick="saveEdit()">Сохранить</button>' +
-          '</div>';
-
-        document.getElementById('modalContent').innerHTML = content;
+    function renderDocumentCard(){
+      if(!currentDocument) return;
+      const doc=currentDocument;
+      if(isEditMode){
+        selectedEditTags = (doc.tags||[]).slice();
+        const actionsText = (doc.actions||[]).join('\n');
+        let html = `
+          <div class="doc-title-edit"><input type="text" class="editable-input" id="editTitle" value="${doc.title||''}" placeholder="Название документа"></div>
+          <div class="doc-desc-edit"><textarea class="editable-input" id="editDesc" placeholder="Описание документа" style="min-height:60px;">${doc.description||''}</textarea></div>
+          <div class="doc-fields-row"><div class="doc-field-title">Категория:</div><div style="flex:1;"><select class="editable-input" id="editCategory">
+            ${PREDEFINED_CATEGORIES.map(c=>`<option value="${c}" ${doc.categories&&doc.categories[0]===c?'selected':''}>${c}</option>`).join('')}
+          </select></div></div>
+          <div class="doc-fields-row"><div class="doc-field-title">Теги:</div><div class="tag-selector" id="editTagSelector" style="flex:1;"></div></div>
+          <div class="doc-fields-row"><div class="doc-field-title">Действия:</div><div style="flex:1;"><textarea class="editable-input" id="editActions" placeholder="Каждое действие с новой строки" style="min-height:100px;">${actionsText}</textarea></div></div>
+          <div class="doc-fields-row"><div class="doc-field-title">Содержание:</div><div style="flex:1;"><textarea class="editable-input" id="editContent" placeholder="Содержание документа" style="min-height:120px;">${doc.content||''}</textarea></div></div>
+          <div class="edit-buttons"><button class="btn btn-secondary" onclick="cancelEdit()">Отмена</button><button class="btn btn-primary" onclick="saveEdit()">Сохранить</button></div>`;
+        document.getElementById('modalContent').innerHTML=html;
         populateEditTagSelector();
-
-      } else {
-        var content = '';
-
-        // Заголовок + описание
-        content += '<div class="doc-title">' + (doc.title || 'Без названия') + '</div>';
-        if (doc.description) {
-          content += '<div class="doc-desc">' + doc.description + '</div>';
+      }else{
+        let catsHtml=(doc.categories||[]).map(c=>`<span class="doc-tag">${c}</span>`).join('');
+        let tagsHtml=(doc.tags||[]).map(t=>`<span class="doc-tag" style="${getTagStyle(t)}border-color:transparent;">${t}</span>`).join('');
+        let actionsHtml='';
+        if(doc.actions?.length){
+          const collapse = doc.actions.length>5;
+          actionsHtml = `<ul class="doc-actions-list${collapse?' collapsed':''}" id="docActionsList">${doc.actions.map(a=>`<li>${a}</li>`).join('')}</ul>`+
+                        (collapse?`<button class="show-more-actions" onclick="toggleActions()">Показать все (${doc.actions.length})</button>`:'');
         }
-
-        // Категории
-        if (doc.categories && doc.categories.length > 0) {
-          var catsHtml = '';
-          for (var i = 0; i < doc.categories.length; i++) {
-            catsHtml += '<span class="doc-tag">' + doc.categories[i] + '</span>';
-          }
-          content += '<div class="doc-section">' +
-                       '<div class="section-label">Категории</div>' +
-                       '<div class="doc-tags">' + catsHtml + '</div>' +
-                     '</div>';
-        }
-
-        // Теги
-        if (doc.tags && doc.tags.length > 0) {
-          var tagsHtml = '';
-          for (var i = 0; i < doc.tags.length; i++) {
-            var tag = doc.tags[i];
-            tagsHtml += '<span class="doc-tag" style="' + getTagStyle(tag) + 'border-color:transparent;">' + tag + '</span>';
-          }
-          content += '<div class="doc-section">' +
-                       '<div class="section-label">Теги</div>' +
-                       '<div class="doc-tags">' + tagsHtml + '</div>' +
-                     '</div>';
-        }
-
-        // Действия
-        if (doc.actions && doc.actions.length > 0) {
-          var needsCollapse = doc.actions.length > 5;
-          var actionsHtml = '<ul class="doc-actions-list' + (needsCollapse ? ' collapsed' : '') + '" id="docActionsList">';
-          for (var i = 0; i < doc.actions.length; i++) actionsHtml += '<li>' + doc.actions[i] + '</li>';
-          actionsHtml += '</ul>';
-          if (needsCollapse) actionsHtml += '<button class="show-more-actions" onclick="toggleActions()">Показать все (' + doc.actions.length + ')</button>';
-
-          content += '<div class="doc-section">' +
-                       '<div class="section-label">Действия</div>' +
-                       actionsHtml +
-                     '</div>';
-        }
-
-        // Содержание
-        if (doc.content) {
-          content += '<div class="doc-section">' +
-                       '<div class="section-label">Содержание</div>' +
-                       '<div class="doc-content">' + doc.content + '</div>' +
-                     '</div>';
-        }
-
-        // Кнопки действий (SVG)
-        content += '<div class="doc-actions-bar">' +
-                     '<button class="icon-btn" onclick="previewDocument()" title="Просмотр">' + ICONS.eye + '</button>' +
-                     '<button class="icon-btn" onclick="editDocument()" title="Редактировать">' + ICONS.edit + '</button>' +
-                     '<a class="icon-btn" href="' + doc.file_url + '" download="' + doc.filename + '" target="_blank" title="Скачать">' + ICONS.download + '</a>' +
-                     '<button class="icon-btn delete" onclick="deleteDocument(\'' + doc.id + '\')" title="Удалить">' + ICONS.trash + '</button>' +
-                   '</div>';
-
-        document.getElementById('modalContent').innerHTML = content;
+        let html = `
+          <div class="doc-title">${doc.title||'Без названия'}</div>
+          ${doc.description?`<div class="doc-desc">${doc.description}</div>`:''}
+          ${(doc.categories?.length)?`<div class="doc-section"><div class="section-label">Категории</div><div class="doc-tags">${catsHtml}</div></div>`:''}
+          ${(doc.tags?.length)?`<div class="doc-section"><div class="section-label">Теги</div><div class="doc-tags">${tagsHtml}</div></div>`:''}
+          ${(doc.actions?.length)?`<div class="doc-section"><div class="section-label">Действия</div>${actionsHtml}</div>`:''}
+          ${doc.content?`<div class="doc-section"><div class="section-label">Содержание</div><div class="doc-content">${doc.content}</div></div>`:''}
+          <div class="doc-actions-bar">
+            <button class="icon-btn" onclick="previewDocument()" title="Просмотр">🔎</button>
+            <button class="icon-btn" onclick="editDocument()" title="Редактировать">✏️</button>
+            <a class="icon-btn" href="${doc.file_url}" download="${doc.filename}" target="_blank" title="Скачать">⬇️</a>
+            <button class="icon-btn delete" onclick="deleteDocument('${doc.id}')" title="Удалить">🗑️</button>
+          </div>`;
+        document.getElementById('modalContent').innerHTML=html;
       }
     }
-
-    function editDocument() { isEditMode = true; renderDocumentCard(); }
-    function cancelEdit() { isEditMode = false; renderDocumentCard(); }
-
-    function saveEdit() {
-      if (!currentDocument) return;
-      var title = document.getElementById('editTitle').value;
-      var description = document.getElementById('editDesc').value;
-      var category = document.getElementById('editCategory').value;
-      var actionsText = document.getElementById('editActions').value;
-      var content = document.getElementById('editContent').value;
-
-      var actions = [];
-      if (actionsText) {
-        var lines = actionsText.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-          var line = lines[i].trim();
-          if (line) actions.push(line);
-        }
-      }
-      if (!category) { alert('Выберите категорию'); return; }
-
-      supabase.from('documents').update({
-        title: title,
-        description: description,
-        categories: [category],
-        tags: selectedEditTags,
-        actions: actions,
-        content: content
-      }).eq('id', currentDocument.id)
-        .then(function(response) {
-          if (response.error) throw response.error;
-          currentDocument.title = title;
-          currentDocument.description = description;
-          currentDocument.categories = [category];
-          currentDocument.tags = selectedEditTags;
-          currentDocument.actions = actions;
-          currentDocument.content = content;
-          isEditMode = false;
-          renderDocumentCard();
-          loadDocuments();
-        })
-        .catch(function(error) {
-          console.error('Ошибка:', error);
-          alert('Ошибка: ' + error.message);
-        });
+    function editDocument(){ isEditMode=true; renderDocumentCard(); }
+    function cancelEdit(){ isEditMode=false; renderDocumentCard(); }
+    async function saveEdit(){
+      if(!currentDocument) return;
+      const title=document.getElementById('editTitle').value;
+      const description=document.getElementById('editDesc').value;
+      const category=document.getElementById('editCategory').value;
+      const actionsText=document.getElementById('editActions').value;
+      const content=document.getElementById('editContent').value;
+      if(!category){ alert('Выберите категорию'); return; }
+      const actions = actionsText ? actionsText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+      const { error } = await supabase.from('documents').update({
+        title, description, categories:[category], tags:selectedEditTags, actions, content
+      }).eq('id', currentDocument.id);
+      if(error){ alert('Ошибка: '+error.message); return; }
+      Object.assign(currentDocument,{ title, description, categories:[category], tags:selectedEditTags, actions, content });
+      isEditMode=false; renderDocumentCard(); loadDocuments();
+    }
+    function toggleActions(){
+      const list=document.getElementById('docActionsList'); const btn=event.target;
+      if(list.classList.contains('collapsed')){ list.classList.remove('collapsed'); btn.textContent='Свернуть'; }
+      else { list.classList.add('collapsed'); btn.textContent='Показать все ('+(currentDocument.actions?.length||0)+')'; }
+    }
+    async function deleteDocument(id){
+      if(!confirm('Удалить документ?')) return;
+      const doc = allDocuments.find(d=>d.id===id); if(!doc) return;
+      const fileName = doc.file_url.split('/').pop();
+      await supabase.storage.from('documents').remove([fileName]);
+      const { error } = await supabase.from('documents').delete().eq('id', id);
+      if(error){ alert('Ошибка: '+error.message); return; }
+      alert('Документ удален'); closeModal(); loadDocuments();
     }
 
-    function toggleActions() {
-      var list = document.getElementById('docActionsList');
-      var btn = event.target;
-      if (list.classList.contains('collapsed')) {
-        list.classList.remove('collapsed'); btn.textContent = 'Свернуть';
-      } else {
-        list.classList.add('collapsed'); var total = currentDocument.actions.length; btn.textContent = 'Показать все (' + total + ')';
-      }
-    }
+    // ==== Настройки таксономии ====
+    function openSettings(type){ renderSettings(type); document.getElementById('settingsOverlay').classList.add('active'); document.body.style.overflow='hidden'; }
+    function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('active'); document.body.style.overflow='auto'; }
+    function closeSettingsOnOverlay(e){ if(e.target.id==='settingsOverlay') closeSettings(); }
 
-    function deleteDocument(docId) {
-      if (!confirm('Удалить документ?')) return;
-      var doc = null;
-      for (var i = 0; i < allDocuments.length; i++) { if (allDocuments[i].id === docId) { doc = allDocuments[i]; break; } }
-      if (!doc) return;
-      var fileName = doc.file_url.split('/').pop();
-      supabase.storage.from('documents').remove([fileName])
-        .then(function() { return supabase.from('documents').delete().eq('id', docId); })
-        .then(function(response) {
-          if (response.error) throw response.error;
-          alert('Документ удален');
-          closeModal();
-          loadDocuments();
-        })
-        .catch(function(error) {
-          console.error('Ошибка:', error);
-          alert('Ошибка: ' + error.message);
-        });
-    }
-
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-      document.body.style.overflow = 'auto';
-      currentDocument = null;
-      isEditMode = false;
-    }
-    function closeModalOnOverlay(event) {
-      if (event.target.id === 'modalOverlay') closeModal();
-    }
-
-    // ===== Настройки тегов и категорий =====
-    function openSettings(type) {
-      renderSettings(type);
-      document.getElementById('settingsOverlay').classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeSettings() {
-      document.getElementById('settingsOverlay').classList.remove('active');
-      document.body.style.overflow = 'auto';
-    }
-    function closeSettingsOnOverlay(e) {
-      if (e.target.id === 'settingsOverlay') closeSettings();
-    }
-
-    function renderSettings(type) {
-      var title = (type === 'tags') ? 'Управление тегами' : 'Управление категориями';
+    function renderSettings(type){
+      const title = (type==='tags')?'Управление тегами':'Управление категориями';
       document.getElementById('settingsTitle').textContent = title;
-      var list = (type === 'tags') ? PREDEFINED_TAGS : PREDEFINED_CATEGORIES;
-
-      var html = '<div class="settings-list">';
-      for (var i = 0; i < list.length; i++) {
-        var val = list[i];
-        html += '<span class="chip">' + val +
-          '<button title="Удалить" onclick="removeItem(\'' + type + '\', \'' + encodeURIComponent(val) + '\')">×</button></span>';
-      }
+      const list = (type==='tags')?PREDEFINED_TAGS:PREDEFINED_CATEGORIES;
+      let html = '<div class="settings-list">';
+      list.forEach(val=>{
+        html += `<span class="chip">${val}<button title="Удалить" onclick="removeItem('${type}','${encodeURIComponent(val)}')">×</button></span>`;
+      });
       html += '</div>';
-      html += '<div class="settings-row">' +
-        '<input id="settingsInput" type="text" placeholder="Добавить ' + (type==='tags'?'тег':'категорию') + '">' +
-        '<button class="btn btn-primary" style="flex:0 0 auto;min-width:120px" onclick="addItem(\'' + type + '\')">Добавить</button>' +
-        '</div>';
-      html += '<div class="help-text" style="margin-top:8px">Сохранение локально (localStorage). ' +
-        '<a href="#" onclick="resetDefaults();return false;" style="color:#72E4A0;text-decoration:underline;">Сброс к значениям по умолчанию</a></div>';
-
-      document.getElementById('settingsContent').innerHTML = html;
+      html += `
+        <div class="settings-row">
+          <input id="settingsInput" type="text" placeholder="Добавить ${type==='tags'?'тег':'категорию'}">
+          <button class="btn btn-primary" style="flex:0 0 auto;min-width:120px" onclick="addItem('${type}')">Добавить</button>
+        </div>
+        <div class="help-text" style="margin-top:8px">Хранится в Supabase. <a href="#" onclick="resetDefaults();return false;" style="color:#72E4A0;text-decoration:underline;">Сброс к значениям по умолчанию</a></div>
+      `;
+      document.getElementById('settingsContent').innerHTML=html;
     }
 
-    
-    async function addItem(type) {
-      var input = document.getElementById('settingsInput');
-      var val = (input.value || '').trim().toLowerCase();
-      if (!val) return;
-
-      if (type === 'tags' || type === 'categories') {
-        const { error } = await supabase.rpc('taxonomy_add', { kind: type, value: val });
-        if (error) { alert('Ошибка: ' + error.message); return; }
+    async function addItem(type){
+      const input=document.getElementById('settingsInput');
+      const val=(input.value||'').trim().toLowerCase();
+      if(!val) return;
+      if(type==='tags' || type==='categories'){
+        const { error } = await supabase.rpc('taxonomy_add', { kind:type, value:val });
+        if(error){ alert('Ошибка: '+error.message); return; }
       }
       await loadTaxonomy();
-      // обновить UI
-      populateCategorySelect();
-      populateCategoryFilter();
-      populateTagSelector();
-      populateEditTagSelector();
-      updateTagSuggestions();
-      renderSettings(type);
-      input.value = '';
-    }
- else {
-        if (PREDEFINED_CATEGORIES.indexOf(val) === -1) PREDEFINED_CATEGORIES.push(val);
-      }
-      saveTaxonomy();
-      // обновить UI
-      populateCategorySelect();
-      populateCategoryFilter();
-      populateTagSelector();
-      populateEditTagSelector();
-      renderSettings(type);
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); renderSettings(type);
+      input.value='';
     }
 
-    
-    async function removeItem(type, encodedVal) {
-      var val = decodeURIComponent(encodedVal || '').trim().toLowerCase();
-      if (!val) return;
-
-      if (type === 'tags' || type === 'categories') {
-        const { error } = await supabase.rpc('taxonomy_remove', { kind: type, value: val });
-        if (error) { alert('Ошибка: ' + error.message); return; }
+    async function removeItem(type, encodedVal){
+      const val=decodeURIComponent(encodedVal||'').trim().toLowerCase();
+      if(!val) return;
+      if(type==='tags' || type==='categories'){
+        const { error } = await supabase.rpc('taxonomy_remove', { kind:type, value:val });
+        if(error){ alert('Ошибка: '+error.message); return; }
       }
       await loadTaxonomy();
-      populateCategorySelect();
-      populateCategoryFilter();
-      populateTagSelector();
-      populateEditTagSelector();
-      updateTagSuggestions();
-      renderSettings(type);
-    }
- else {
-        PREDEFINED_CATEGORIES = PREDEFINED_CATEGORIES.filter(function(c){ return c !== val; });
-      }
-      saveTaxonomy();
-      populateCategorySelect();
-      populateCategoryFilter();
-      populateTagSelector();
-      populateEditTagSelector();
-      renderSettings(type);
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); renderSettings(type);
     }
 
-    
-    async function resetDefaults() {
-      const cats = DEFAULT_CATEGORIES.slice();
-      const tags = DEFAULT_TAGS.slice();
-      const { error } = await supabase
-        .from('taxonomy')
-        .update({ categories: cats, tags })
-        .eq('slug','global');
-      if (error) { alert('Ошибка: ' + error.message); return; }
-
+    async function resetDefaults(){
+      const { error } = await supabase.from('taxonomy').update({ categories: DEFAULT_CATEGORIES, tags: DEFAULT_TAGS }).eq('slug','global');
+      if(error){ alert('Ошибка: '+error.message); return; }
       await loadTaxonomy();
-      populateCategorySelect();
-      populateCategoryFilter();
-      populateTagSelector();
-      populateEditTagSelector();
-      updateTagSuggestions();
-      var title = document.getElementById('settingsTitle').textContent;
-      renderSettings(title.indexOf('тег')>-1 ? 'tags' : 'categories');
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions();
+      const t=document.getElementById('settingsTitle').textContent; renderSettings(t.includes('тег')?'tags':'categories');
     }
 
+    // ==== Реалтайм ====
+    function initRealtime(){
+      supabase.channel('taxonomy_changes')
+        .on('postgres_changes', { event:'*', schema:'public', table:'taxonomy' }, async ()=>{ await loadTaxonomy(); populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); applyFilters(); })
+        .subscribe();
+      supabase.channel('documents_changes')
+        .on('postgres_changes', { event:'*', schema:'public', table:'documents' }, async ()=>{ await loadDocuments(); applyFilters(); })
+        .subscribe();
+    }
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        var previewModal = document.getElementById('previewModal');
-        var mainModal = document.getElementById('modalOverlay');
-        var uploadModal = document.getElementById('uploadModal');
-        var settingsModal = document.getElementById('settingsOverlay');
-
-        if (previewModal.classList.contains('active')) {
-          closePreview();
-        } else if (mainModal.classList.contains('active')) {
-          if (isEditMode) { cancelEdit(); } else { closeModal(); }
-        } else if (uploadModal.classList.contains('active')) {
-          closeUploadModal();
-        } else if (settingsModal.classList.contains('active')) {
-          closeSettings();
-        }
+    // Esc закрывает модалки
+    document.addEventListener('keydown', e=>{
+      if(e.key==='Escape'){
+        const previewModal=document.getElementById('previewModal');
+        const mainModal=document.getElementById('modalOverlay');
+        const uploadModal=document.getElementById('uploadModal');
+        const settingsModal=document.getElementById('settingsOverlay');
+        if(previewModal.classList.contains('active')) closePreview();
+        else if(mainModal.classList.contains('active')) { if(isEditMode) cancelEdit(); else closeModal(); }
+        else if(uploadModal.classList.contains('active')) closeUploadModal();
+        else if(settingsModal.classList.contains('active')) closeSettings();
       }
     });
 
+    // Старт
     initializeApp();
-  
-    function initRealtime() {
-      supabase.channel('taxonomy_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'taxonomy' }, async () => {
-          await loadTaxonomy();
-          populateCategorySelect();
-          populateCategoryFilter();
-          populateTagSelector();
-          populateEditTagSelector();
-          updateTagSuggestions();
-          applyFilters();
-        })
-        .subscribe();
-
-      supabase.channel('documents_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, async () => {
-          await loadDocuments();
-          applyFilters();
-        })
-        .subscribe();
-    }
-</script>
+  </script>
 </body>
 </html>
