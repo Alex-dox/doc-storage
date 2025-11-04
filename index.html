@@ -413,9 +413,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-async function loadTaxonomy(){ await ensureTaxonomyRow(); }
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     var SUPABASE_URL = 'https://zudvtnxzwnyxxtgmlenf.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZHZ0bnh6d255eHh0Z21sZW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MTIzNTAsImV4cCI6MjA3NjQ4ODM1MH0.ZJGsAv6H-rm6NzUrT_jWITvwZbrRDsxLcDSNOIfQzgk';
@@ -423,54 +421,80 @@ async function loadTaxonomy(){ await ensureTaxonomyRow(); }
     var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     
+// SVG icon set for card actions (minimal, dark)
+var ICONS = {
+  eye:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>',
+  edit:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l10-10-4-4L4 16v4Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="1.6"/></svg>',
+  download:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v12" stroke="currentColor" stroke-width="1.6"/><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.6"/><path d="M4 21h16" stroke="currentColor" stroke-width="1.6"/></svg>',
+  trash:'<svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5h6v2" stroke="currentColor" stroke-width="1.6"/><path d="M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="1.6"/></svg>'
+};
 
+// === Дефолтные значения таксономии (на случай пустого localStorage) ===
+    var DEFAULT_CATEGORIES = ['Жилье', 'Финансы', 'Работа', 'Идентификация', 'Медицина'];
+    var DEFAULT_TAGS = ['CAF', 'CADA', 'OFPRA', 'ANEF', 'France Travail', 'Credit Mutuel'];
 
-// === Supabase-backed taxonomy singleton (global across devices) ===
-var TAXONOMY_ID = '00000000-0000-0000-0000-000000000001';
-var PREDEFINED_CATEGORIES = [];
-var PREDEFINED_TAGS = [];
+    // Текущая таксономия (редактируемая)
+    var PREDEFINED_CATEGORIES = [];
+    var PREDEFINED_TAGS = [];
 
-async function ensureTaxonomyRow(){
-  let { data, error } = await supabase.from('taxonomy').select('*').eq('id', TAXONOMY_ID).single();
-  if (error && (error.code === 'PGRST116' || (error.message||'').includes('0 rows'))) {
-    let cats = []; let tags = [];
-    try { cats = JSON.parse(localStorage.getItem('ds_categories')||'[]'); } catch(e){}
-    try { tags = JSON.parse(localStorage.getItem('ds_tags')||'[]'); } catch(e){}
-    const DEF_CATS = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
-    const DEF_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
-    cats = (Array.isArray(cats)&&cats.length?cats:DEF_CATS).slice();
-    tags = (Array.isArray(tags)&&tags.length?tags:DEF_TAGS).slice();
-    const ins = await supabase.from('taxonomy').upsert({ id: TAXONOMY_ID, categories: cats, tags: tags, updated_at: new Date().toISOString() }).select().single();
-    if (ins.error) throw ins.error;
-    data = ins.data;
-    try { localStorage.removeItem('ds_categories'); localStorage.removeItem('ds_tags'); } catch(e){}
-  } else if (error) { throw error; }
-  PREDEFINED_CATEGORIES = Array.isArray(data.categories)?data.categories:[];
-  PREDEFINED_TAGS = Array.isArray(data.tags)?data.tags:[];
-}
+    var TAG_COLORS = {
+      'CAF': 'background: rgba(255, 99, 132, 0.2); color: #ff6384;',
+      'CADA': 'background: rgba(54, 162, 235, 0.2); color: #36a2eb;',
+      'OFPRA': 'background: rgba(255, 206, 86, 0.2); color: #ffce56;',
+      'ANEF': 'background: rgba(75, 192, 192, 0.2); color: #4bc0c0;',
+      'France Travail': 'background: rgba(153, 102, 255, 0.2); color: #9966ff;',
+      'Credit Mutuel': 'background: rgba(255, 159, 64, 0.2); color: #ff9f40;'
+    };
 
-async catch(e) {
+    var allDocuments = [];
+    var currentDocument = null;
+    var selectedTags = [];
+    var selectedEditTags = [];
+    var selectedSearchTags = [];
+    var isEditMode = false;
+
+    
+    async function saveTaxonomy() {
+      // noop: таксономия теперь хранится в Supabase
+    }
+    async function loadTaxonomy() {
+      try {
+        const { data, error } = await supabase
+          .from('taxonomy')
+          .select('categories, tags')
+          .eq('slug','global')
+          .single();
+        if (error) throw error;
+        PREDEFINED_CATEGORIES = Array.isArray(data?.categories) && data.categories.length ? data.categories.slice() : DEFAULT_CATEGORIES.slice();
+        PREDEFINED_TAGS = Array.isArray(data?.tags) && data.tags.length ? data.tags.slice() : DEFAULT_TAGS.slice();
+      } catch(e) {
+        console.warn('loadTaxonomy fallback:', e?.message || e);
         PREDEFINED_CATEGORIES = DEFAULT_CATEGORIES.slice();
         PREDEFINED_TAGS = DEFAULT_TAGS.slice();
       }
     }
 
+
     function getTagStyle(tag) {
       return TAG_COLORS[tag] || 'background: rgba(114, 228, 160, 0.2); color: #72E4A0;';
     }
 
-    async function initializeApp(){
+    
+    async function initializeApp() {
       await loadTaxonomy();
       populateCategorySelect();
       populateCategoryFilter();
       populateTagSelector();
       updateTagSuggestions();
-      loadDocuments();
+      await loadDocuments();
 
       document.getElementById('textSearch').addEventListener('input', applyFilters);
       document.getElementById('categoryFilter').addEventListener('change', applyFilters);
       document.getElementById('tagsAndMode').addEventListener('change', applyFilters);
+
+      initRealtime();
     }
+
 
     function populateCategorySelect() {
       var select = document.getElementById('categorySelect');
@@ -1141,13 +1165,27 @@ async catch(e) {
       document.getElementById('settingsContent').innerHTML = html;
     }
 
-    function addItem(type) {
+    
+    async function addItem(type) {
       var input = document.getElementById('settingsInput');
-      var val = (input.value || '').trim();
+      var val = (input.value || '').trim().toLowerCase();
       if (!val) return;
-      if (type === 'tags') {
-        if (PREDEFINED_TAGS.indexOf(val) === -1) PREDEFINED_TAGS.push(val);
-      } else {
+
+      if (type === 'tags' || type === 'categories') {
+        const { error } = await supabase.rpc('taxonomy_add', { kind: type, value: val });
+        if (error) { alert('Ошибка: ' + error.message); return; }
+      }
+      await loadTaxonomy();
+      // обновить UI
+      populateCategorySelect();
+      populateCategoryFilter();
+      populateTagSelector();
+      populateEditTagSelector();
+      updateTagSuggestions();
+      renderSettings(type);
+      input.value = '';
+    }
+ else {
         if (PREDEFINED_CATEGORIES.indexOf(val) === -1) PREDEFINED_CATEGORIES.push(val);
       }
       saveTaxonomy();
@@ -1159,11 +1197,24 @@ async catch(e) {
       renderSettings(type);
     }
 
-    function removeItem(type, encodedVal) {
-      var val = decodeURIComponent(encodedVal);
-      if (type === 'tags') {
-        PREDEFINED_TAGS = PREDEFINED_TAGS.filter(function(t){ return t !== val; });
-      } else {
+    
+    async function removeItem(type, encodedVal) {
+      var val = decodeURIComponent(encodedVal || '').trim().toLowerCase();
+      if (!val) return;
+
+      if (type === 'tags' || type === 'categories') {
+        const { error } = await supabase.rpc('taxonomy_remove', { kind: type, value: val });
+        if (error) { alert('Ошибка: ' + error.message); return; }
+      }
+      await loadTaxonomy();
+      populateCategorySelect();
+      populateCategoryFilter();
+      populateTagSelector();
+      populateEditTagSelector();
+      updateTagSuggestions();
+      renderSettings(type);
+    }
+ else {
         PREDEFINED_CATEGORIES = PREDEFINED_CATEGORIES.filter(function(c){ return c !== val; });
       }
       saveTaxonomy();
@@ -1174,18 +1225,26 @@ async catch(e) {
       renderSettings(type);
     }
 
-    function resetDefaults() {
-      PREDEFINED_CATEGORIES = DEFAULT_CATEGORIES.slice();
-      PREDEFINED_TAGS = DEFAULT_TAGS.slice();
-      saveTaxonomy();
+    
+    async function resetDefaults() {
+      const cats = DEFAULT_CATEGORIES.slice();
+      const tags = DEFAULT_TAGS.slice();
+      const { error } = await supabase
+        .from('taxonomy')
+        .update({ categories: cats, tags })
+        .eq('slug','global');
+      if (error) { alert('Ошибка: ' + error.message); return; }
+
+      await loadTaxonomy();
       populateCategorySelect();
       populateCategoryFilter();
       populateTagSelector();
       populateEditTagSelector();
-      // перерисуем текущее окно
+      updateTagSuggestions();
       var title = document.getElementById('settingsTitle').textContent;
       renderSettings(title.indexOf('тег')>-1 ? 'tags' : 'categories');
     }
+
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
@@ -1207,6 +1266,27 @@ async catch(e) {
     });
 
     initializeApp();
-  </script>
+  
+    function initRealtime() {
+      supabase.channel('taxonomy_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'taxonomy' }, async () => {
+          await loadTaxonomy();
+          populateCategorySelect();
+          populateCategoryFilter();
+          populateTagSelector();
+          populateEditTagSelector();
+          updateTagSuggestions();
+          applyFilters();
+        })
+        .subscribe();
+
+      supabase.channel('documents_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, async () => {
+          await loadDocuments();
+          applyFilters();
+        })
+        .subscribe();
+    }
+</script>
 </body>
 </html>
