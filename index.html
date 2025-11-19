@@ -185,7 +185,6 @@
         </div>
         <div class="search-tags-container" id="selectedSearchTags"></div>
       <div class="tag-suggestions" id="tagSuggestions"></div>
-      <label class="and-toggle"><input type="checkbox" id="tagsAndMode" /> Все теги</label>
     </div>
 
     <div class="search-section">
@@ -198,13 +197,6 @@
       <select class="search-input" id="categoryFilter">
         <option value="">Все категории</option>
       </select>
-    </div>
-
-    <div class="menu-section">
-      <div class="menu-section-header">
-        <div class="menu-title">Теги</div>
-      </div>
-      <div id="tagMenuList"></div>
     </div>
   </aside>
 
@@ -451,7 +443,6 @@
 
       document.getElementById('textSearch').addEventListener('input', applyFilters);
       document.getElementById('categoryFilter').addEventListener('change', applyFilters);
-      document.getElementById('tagsAndMode').addEventListener('change', applyFilters);
 
       initRealtime();
     }
@@ -552,27 +543,23 @@
     }
     function toggleTagFilter(tag){ selectedSearchTags.includes(tag)?removeSearchTag(tag):addSearchTag(tag); }
     function updateTagSuggestions(){
-      let all=[];
-      allDocuments.forEach(d=> (d.tags||[]).forEach(t=>{ if(!all.includes(t)&&!selectedSearchTags.includes(t)) all.push(t); }));
-      if(all.length===0) PREDEFINED_TAGS.forEach(t=>{ if(!selectedSearchTags.includes(t)) all.push(t); });
+      const usage = getTagUsage();
+      const all = Object.keys(usage).filter(t=>!selectedSearchTags.includes(t));
       const c=document.getElementById('tagSuggestions'); c.innerHTML='';
-      all.slice(0,6).forEach(t=>{
+      if(!all.length){ c.innerHTML='<div class="help-text" style="margin-top:0">Теги появятся после назначения</div>'; return; }
+      all.sort((a,b)=>usage[b]-usage[a]||a.localeCompare(b)).forEach(t=>{
         const el=document.createElement('div'); el.className='tag-suggestion'; el.textContent=t; el.style.cssText=getTagStyle(t); el.onclick=()=>addSearchTag(t); c.appendChild(el);
       });
     }
     function applyFilters(){
       const q=(document.getElementById('textSearch').value||'').toLowerCase();
       const cat=document.getElementById('categoryFilter').value;
-      const andMode=document.getElementById('tagsAndMode').checked;
 
       const filtered = allDocuments.filter(doc=>{
         const textMatch=!q || (doc.title&&doc.title.toLowerCase().includes(q)) || (doc.description&&doc.description.toLowerCase().includes(q));
         const catMatch=!cat || ((doc.categories||[]).includes(cat));
-        let tagsMatch=true;
-        if(selectedSearchTags.length){
-          const tags=doc.tags||[];
-          tagsMatch = andMode ? selectedSearchTags.every(t=>tags.includes(t)) : selectedSearchTags.some(t=>tags.includes(t));
-        }
+        const tags=doc.tags||[];
+        const tagsMatch = !selectedSearchTags.length || selectedSearchTags.every(t=>tags.includes(t));
         return textMatch && catMatch && tagsMatch;
       });
 
@@ -608,7 +595,7 @@
       PREDEFINED_CATEGORIES.forEach(c=>{ html+=`<div class="menu-item" onclick="quickFilterCategory('${c}')">${c}<span class="item-count">${counts[c]||0}</span></div>`; });
       catList.innerHTML=html;
     }
-    function clearFilters(){ document.getElementById('textSearch').value=''; document.getElementById('categoryFilter').value=''; document.getElementById('tagsAndMode').checked=false; selectedSearchTags=[]; renderSearchTags(); renderTagMenu(); updateTagSuggestions(); applyFilters(); }
+    function clearFilters(){ document.getElementById('textSearch').value=''; document.getElementById('categoryFilter').value=''; selectedSearchTags=[]; renderSearchTags(); renderTagMenu(); updateTagSuggestions(); applyFilters(); }
     function quickFilterCategory(c){ document.getElementById('categoryFilter').value=c; applyFilters(); }
 
     // ==== Модалки загрузки ====
@@ -716,7 +703,6 @@
               categories:[category], tags:selectedTags, actions, content:contentText, lang:'ru', ai_filled:true
             }]).select();
             if(ins.error) throw ins.error;
-            alert('Документ загружен!');
           }else if(editingDocument){
             let fileUrl=editingDocument.file_url;
             let filename=editingDocument.filename;
@@ -736,7 +722,6 @@
             }).eq('id', editingDocument.id);
             if(error) throw error;
             if(currentDocument && currentDocument.id===editingDocument.id){ Object.assign(currentDocument,{ filename, file_url:fileUrl, title, description, categories:[category], tags:selectedTags, actions, content:contentText }); }
-            alert('Документ обновлен!');
           }
           closeUploadModal();
           loadDocuments();
@@ -804,7 +789,7 @@
       await supabase.storage.from('documents').remove([fileName]);
       const { error } = await supabase.from('documents').delete().eq('id', id);
       if(error){ alert('Ошибка: '+error.message); return; }
-      alert('Документ удален'); closeModal(); loadDocuments();
+      closeModal(); loadDocuments();
     }
 
     // ==== Настройки таксономии ====
@@ -824,10 +809,9 @@
       html += '</div>';
       html += `
         <div class="settings-row">
-          <input id="settingsInput" type="text" placeholder="Добавить ${type==='tags'?'тег':'категорию'}">
+          <input id="settingsInput" type="text" placeholder="Добавить ${type==='tags'?'тег':'категорию'}"> 
           <button class="btn btn-primary" style="flex:0 0 auto;min-width:120px" onclick="addItem('${type}')">Добавить</button>
         </div>
-        <div class="help-text" style="margin-top:8px">Хранится в Supabase. <a href="#" onclick="resetDefaults();return false;" style="color:#72E4A0;text-decoration:underline;">Сброс к значениям по умолчанию</a></div>
       `;
       document.getElementById('settingsContent').innerHTML=html;
     }
@@ -837,6 +821,7 @@
       const raw = customVal!==undefined ? customVal : (input?.value||'');
       const val=(raw||'').trim();
       if(!val) return;
+      const currentCategory = document.getElementById('categorySelect')?.value || '';
       if(type==='tags' || type==='categories'){
         if(type==='tags') ensureTagColor(val);
         const { error } = await supabase.rpc('taxonomy_add', { kind:type, value:val });
@@ -844,6 +829,10 @@
       }
       await loadTaxonomy();
       populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions(); renderSettings(type);
+      if(currentCategory){
+        const select=document.getElementById('categorySelect');
+        if(select && Array.from(select.options).some(o=>o.value===currentCategory)) select.value=currentCategory;
+      }
       if(type==='categories') document.getElementById('categorySelect').value=val;
       if(!customVal && input) input.value='';
     }
@@ -856,17 +845,25 @@
         const { error } = await supabase.rpc('taxonomy_remove', { kind:type, value:val });
         if(error){ alert('Ошибка: '+error.message); return; }
       }
+      if(type==='tags'){
+        await removeTagFromDocuments(val);
+        selectedTags = selectedTags.filter(t=>t!==val);
+        selectedSearchTags = selectedSearchTags.filter(t=>t!==val);
+      }
       if(type==='categories' && CATEGORY_ICONS[val]){ delete CATEGORY_ICONS[val]; persistCategoryIcons(); }
       await loadTaxonomy();
       populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions(); renderSettings(type);
+      await loadDocuments(); applyFilters();
     }
 
-    async function resetDefaults(){
-      const { error } = await supabase.from('taxonomy').update({ categories: DEFAULT_CATEGORIES, tags: DEFAULT_TAGS }).eq('slug','global');
-      if(error){ alert('Ошибка: '+error.message); return; }
-      await loadTaxonomy();
-      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions();
-      const t=document.getElementById('settingsTitle').textContent; renderSettings(t.includes('тег')?'tags':'categories');
+    async function removeTagFromDocuments(tag){
+      const targets = allDocuments.filter(d=>Array.isArray(d.tags) && d.tags.includes(tag));
+      for(const doc of targets){
+        const newTags = (doc.tags||[]).filter(t=>t!==tag);
+        const { error } = await supabase.from('documents').update({ tags:newTags }).eq('id', doc.id);
+        if(!error){ doc.tags = newTags; }
+      }
+      renderDocuments(allDocuments);
     }
 
     function promptCategoryIcon(encodedCat){
