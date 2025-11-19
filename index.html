@@ -23,8 +23,8 @@
 
   <style>
     * { box-sizing: border-box; }
-    body { font-family:'Inter',-apple-system,sans-serif; background:#181A1B; color:#F3F6F8; margin:0; display:flex; height:100vh; }
-    aside { width:260px; background:#202225; display:flex; flex-direction:column; padding:24px 16px; border-right:1px solid #2a2d2f; overflow-y:auto; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#181A1B; color:#F3F6F8; margin:0; display:flex; min-height:100vh; }
+    aside { width:280px; background:#202225; display:flex; flex-direction:column; padding:24px 16px; border-right:1px solid #2a2d2f; overflow-y:auto; }
     .menu-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
     .menu-logo{font-weight:600;font-size:20px;color:#72E4A0;}
     .add-icon-btn{width:32px;height:32px;background:#72E4A0;color:#181A1B;border:none;border-radius:6px;font-size:20px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1;}
@@ -55,11 +55,13 @@
     .main-header{margin-bottom:24px;}
     .main-title{font-size:28px;font-weight:600;margin:0 0 8px 0;}
     .main-subtitle{font-size:15px;color:#B6BABF;}
+    .info-bar{margin:8px 0 20px;padding:10px 12px;border-radius:10px;border:1px solid #2a2d2f;background:#1b1d1e;color:#9aa0a6;font-size:13px;display:flex;align-items:center;gap:8px;}
+    .info-dot{width:8px;height:8px;border-radius:50%;background:#72E4A0;box-shadow:0 0 0 4px rgba(114,228,160,.12);}
     .preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
     .preview-card{background:#212324;border-radius:12px;padding:20px;cursor:pointer;transition:.2s;border:2px solid transparent;}
     .preview-card:hover{border-color:#72E4A0;transform:translateY(-2px);box-shadow:0 4px 12px rgba(114,228,160,.15);}
     .preview-header{display:flex;gap:12px;margin-bottom:12px;}
-    .preview-icon{width:48px;height:48px;background:#2a2d2f;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+    .preview-icon{width:48px;height:48px;background:#2a2d2f;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .preview-info{flex:1;min-width:0;}
     .preview-title{font-size:16px;font-weight:600;margin-bottom:4px;color:#F3F6F8;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .preview-category{font-size:12px;color:#74cba4;font-weight:500;}
@@ -82,12 +84,19 @@
     .ai-status{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:13px;display:none;}
     .ai-status.analyzing{display:block;background:rgba(114,228,160,.1);color:#72E4A0;border:1px solid rgba(114,228,160,.3);}
     .ai-status.error{display:block;background:rgba(255,159,64,.1);color:#ff9f40;border:1px solid rgba(255,159,64,.3);}
-    .tag-selector{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;max-height:200px;overflow-y:auto;}
-    .tag-option{background:rgba(114,228,160,.1);color:#72E4A0;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;transition:.2s;border:1px solid transparent;}
+    .tag-selector{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;max-height:220px;overflow-y:auto;}
+    .tag-option{background:rgba(114,228,160,.1);color:#72E4A0;padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;transition:.2s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;}
     .tag-option:hover{background:rgba(114,228,160,.2);}
     .tag-option.selected{background:rgba(114,228,160,.25);border-color:#72E4A0;}
+    .tag-remove{background:transparent;border:none;color:#b6babf;cursor:pointer;font-size:14px;padding:0 2px;line-height:1;}
+    .tag-remove:hover{color:#ff6b6b;}
     .help-text{font-size:12px;color:#6a6d6f;margin-top:4px;}
-    .form-buttons{display:flex;gap:12px;margin-top:24px;}
+    .form-buttons{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+    .inline-manage{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;}
+    .inline-manage input{flex:1;min-width:180px;background:#2a2d2f;border:1px solid #3a3d3f;border-radius:8px;padding:8px 10px;color:#F3F6F8;}
+    .inline-manage .mini-btn{background:#2a2d2f;border:1px solid #3a3d3f;color:#B6BABF;border-radius:8px;padding:8px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s;}
+    .inline-manage .mini-btn:hover{border-color:#72E4A0;color:#72E4A0;}
+    .inline-help{font-size:12px;color:#6a6d6f;margin:6px 0 0;}
     .btn{flex:1;padding:12px 24px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;}
     .btn-primary{background:#72E4A0;color:#181A1B;}
     .btn-primary:hover{background:#4BC483;}
@@ -112,8 +121,10 @@
 
     /* Док-карта */
     .settings-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#2a2d2f;color:#DEE6EA;font-size:13px;}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#2a2d2f;color:#DEE6EA;font-size:13px;border:1px solid #2f3234;}
     .chip button{border:none;background:transparent;color:#ff6b6b;font-size:14px;cursor:pointer;padding:0 2px;}
+    .chip .chip-icon{color:#9aa0a6;}
+    .chip .chip-action{color:#B6BABF;}
 
     .doc-title{font-size:20px;font-weight:600;margin:0 0 8px 0;color:#F3F6F8;}
     .doc-desc{font-size:13px;color:#B6BABF;line-height:1.6;margin-bottom:8px;}
@@ -131,13 +142,30 @@
     .icon-btn:hover{background:#303335;color:#F3F6F8;}
     .icon-btn.delete:hover{border-color:#ff6b6b;color:#ff6b6b;}
     .icon{width:18px;height:18px;display:block;}
+    .icon-dark{fill:none;stroke:#B6BABF;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+    .category-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:#2a2d2f;border:1px solid #3a3d3f;color:#DEE6EA;}
+    .category-icon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;}
+    .icon-only-btn{background:#2a2d2f;border:1px solid #3a3d3f;color:#B6BABF;border-radius:8px;padding:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s;}
+    .icon-only-btn:hover{border-color:#72E4A0;color:#72E4A0;}
+
+    @media (max-width: 960px){
+      body{flex-direction:column;}
+      aside{width:100%;border-right:none;border-bottom:1px solid #2a2d2f;position:sticky;top:0;z-index:900;max-height:80vh;}
+      main{padding:20px;}
+      .menu-section{margin-bottom:16px;}
+      .preview-grid{display:flex;flex-direction:column;gap:14px;}
+      .preview-card{width:100%;}
+      .menu-header{position:sticky;top:0;background:#202225;padding-bottom:12px;z-index:910;}
+    }
   </style>
 </head>
 <body>
   <aside>
     <div class="menu-header">
       <div class="menu-logo">DocStorage</div>
-      <button class="add-icon-btn" onclick="openUploadModal()">+</button>
+      <button class="add-icon-btn" onclick="openUploadModal()" title="Добавить документ">
+        <svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 5v14M5 12h14"/></svg>
+      </button>
     </div>
 
     <div class="search-section">
@@ -174,6 +202,10 @@
     <div class="main-header">
       <h1 class="main-title" id="mainTitle">Все документы</h1>
       <p class="main-subtitle">Кликните на карточку для просмотра деталей</p>
+      <div class="info-bar" title="Изменения сохранены в ветке work">
+        <span class="info-dot"></span>
+        <span>Эта версия сохранена локально в ветке <strong>work</strong>. Если на GitHub пусто, убедитесь, что выбрана нужная ветка.</span>
+      </div>
     </div>
     <div class="preview-grid" id="previewGrid">
       <div class="loading">Загрузка документов...</div>
@@ -183,7 +215,7 @@
   <!-- Upload -->
   <div class="upload-modal" id="uploadModal">
     <div class="upload-form">
-      <h2>Загрузить документ</h2>
+      <h2 id="uploadTitle">Загрузить документ</h2>
       <form id="uploadForm">
         <div class="form-group">
           <label>Файл *</label>
@@ -192,6 +224,7 @@
             <div class="file-input-label">Выберите файл (PDF, JPEG, PNG)</div>
             <div class="selected-file" id="selectedFile"></div>
             <div class="ai-status" id="aiStatus"></div>
+            <div class="help-text" id="existingFileHint"></div>
           </div>
         </div>
 
@@ -207,15 +240,37 @@
 
         <div class="form-group">
           <label>Категория *</label>
-          <select id="categorySelect" required>
-            <option value="">Выберите категорию</option>
-          </select>
+          <div class="inline-manage">
+            <select id="categorySelect" required>
+              <option value="">Выберите категорию</option>
+            </select>
+            <button type="button" class="mini-btn" onclick="openCategoryIconPrompt()">
+              <svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 4v4m0 0H8m4-4h4m0 8v4m0-4h4m-4 4h-4M4 12h4m0 0V8m0 4v4m4-4h4"/></svg>
+              Иконка
+            </button>
+          </div>
+          <div class="inline-manage">
+            <input id="newCategoryInput" type="text" placeholder="Добавить категорию" />
+            <button type="button" class="mini-btn" onclick="addInlineCategory()">
+              <svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 5v14m-7-7h14"/></svg>
+              Добавить
+            </button>
+          </div>
+          <div class="settings-list" id="categoryChips"></div>
+          <div class="inline-help">Клик по кресту удалит категорию из списка. Для новых категорий автоматически ставится иконка 💾.</div>
         </div>
 
         <div class="form-group">
           <label>Теги</label>
           <div class="tag-selector" id="tagSelector"></div>
-          <div class="help-text">Выберите релевантные теги</div>
+          <div class="inline-manage">
+            <input id="newTagInput" type="text" placeholder="Добавить тег" />
+            <button type="button" class="mini-btn" onclick="addInlineTag()">
+              <svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 5v14m-7-7h14"/></svg>
+              Добавить
+            </button>
+          </div>
+          <div class="inline-help">Тап по тегу выбирает его, крестик удаляет из списка.</div>
         </div>
 
         <div class="form-group">
@@ -269,28 +324,70 @@
   <script>
     // ==== Константы ====
     const DEFAULT_CATEGORIES = ['Жилье','Финансы','Работа','Идентификация','Медицина'];
+    const DEFAULT_CATEGORY_ICONS = {
+      'Жилье':'🔑',
+      'Финансы':'💶',
+      'Работа':'💻',
+      'Идентификация':'💳',
+      'Медицина':'💊'
+    };
     const DEFAULT_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
-    const TAG_COLORS = {
-      'CAF':'background: rgba(255,99,132,.2); color:#ff6384;',
-      'CADA':'background: rgba(54,162,235,.2); color:#36a2eb;',
-      'OFPRA':'background: rgba(255,206,86,.2); color:#ffce56;',
-      'ANEF':'background: rgba(75,192,192,.2); color:#4bc0c0;',
-      'France Travail':'background: rgba(153,102,255,.2); color:#9966ff;',
-      'Credit Mutuel':'background: rgba(255,159,64,.2); color:#ff9f40;'
+    const TAG_COLOR_PALETTE = ['#72E4A0','#7FD7FF','#FFB870','#C792EA','#E57373','#64B5F6','#FFD54F','#4DD0E1','#A3E635','#F48FB1','#CE93D8','#9FA8DA'];
+    const ICONS = {
+      file:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M7 4h6.6L17 7.4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path class="icon-dark" d="M13.5 4V8h4"/></svg>`,
+      view:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z"/><circle class="icon-dark" cx="12" cy="12" r="2.5"/></svg>`,
+      edit:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="m5 19 3.4-.6 9-9a1.2 1.2 0 0 0 0-1.8l-1-1a1.2 1.2 0 0 0-1.8 0l-9 9L5 19Z"/><path class="icon-dark" d="M14 6.5 17.5 10"/></svg>`,
+      download:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 4v10"/><path class="icon-dark" d="m8 10 4 4 4-4"/><path class="icon-dark" d="M5 19h14"/></svg>`,
+      trash:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M5 7h14"/><path class="icon-dark" d="M10 10v6"/><path class="icon-dark" d="M14 10v6"/><path class="icon-dark" d="M6 7 7 19a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/><path class="icon-dark" d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
+      tag:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M7 5h6l5 5-7 7-5-5V5Z"/><circle class="icon-dark" cx="10" cy="10" r="1.3"/></svg>`,
+      link:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M10 14 8.5 15.5a3.5 3.5 0 0 1-5-5L6 8"/><path class="icon-dark" d="M14 10 15.5 8.5a3.5 3.5 0 0 1 5 5L18 16"/><path class="icon-dark" d="M9 12.5 12.5 9"/></svg>`,
+      gear:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path class="icon-dark" d="M4 12c0-.5.05-1 .15-1.47l-1.9-1.1 2-3.46 1.9 1.1c.7-.56 1.5-1 2.36-1.3V3h4v2.77c.86.3 1.66.74 2.36 1.3l1.9-1.1 2 3.46-1.9 1.1c.1.47.15.97.15 1.47s-.05 1-.15 1.47l1.9 1.1-2 3.46-1.9-1.1c-.7.56-1.5 1-2.36 1.3V21h-4v-2.77c-.86-.3-1.66-.74-2.36-1.3l-1.9 1.1-2-3.46 1.9-1.1c-.1-.47-.15-.97-.15-1.47Z"/></svg>`,
+      plus:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M12 5v14M5 12h14"/></svg>`
     };
 
     // ==== Состояние ====
     let PREDEFINED_CATEGORIES = [];
     let PREDEFINED_TAGS = [];
+    let CATEGORY_ICONS = {};
+    let tagColorMap = {};
     let allDocuments = [];
     let currentDocument = null;
     let selectedTags = [];
-    let selectedEditTags = [];
     let selectedSearchTags = [];
-    let isEditMode = false;
+    let formMode = 'create';
+    let editingDocument = null;
 
     // ==== Утилиты ====
-    function getTagStyle(tag){ return TAG_COLORS[tag] || 'background: rgba(114,228,160,.2); color:#72E4A0;'; }
+    function hexToRgba(hex, alpha){
+      const clean = hex.replace('#','');
+      const bigint = parseInt(clean, 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+    function ensureTagColor(tag){
+      if(tagColorMap[tag]) return tagColorMap[tag];
+      const index = Object.keys(tagColorMap).length;
+      const paletteColor = TAG_COLOR_PALETTE[index % TAG_COLOR_PALETTE.length];
+      const hueBase = (index * 37) % 360;
+      const bg = paletteColor ? hexToRgba(paletteColor, 0.22) : `hsla(${hueBase},60%,28%,0.22)`;
+      const text = paletteColor || `hsl(${hueBase},70%,70%)`;
+      tagColorMap[tag] = { bg, text };
+      return tagColorMap[tag];
+    }
+    function getTagStyle(tag){ const c=ensureTagColor(tag); return `background:${c.bg}; color:${c.text};`; }
+    function persistCategoryIcons(){ try{ localStorage.setItem('categoryIcons', JSON.stringify(CATEGORY_ICONS)); }catch(e){ console.warn('Icon save',e); } }
+    function loadCategoryIcons(){
+      try{ const saved = JSON.parse(localStorage.getItem('categoryIcons')||'{}'); CATEGORY_ICONS = saved || {}; }
+      catch(e){ CATEGORY_ICONS={}; }
+    }
+    function syncCategoryIcons(){
+      PREDEFINED_CATEGORIES.forEach(cat=>{ if(!CATEGORY_ICONS[cat]) CATEGORY_ICONS[cat]=DEFAULT_CATEGORY_ICONS[cat]||'💾'; });
+      Object.keys(CATEGORY_ICONS).forEach(cat=>{ if(!PREDEFINED_CATEGORIES.includes(cat)) delete CATEGORY_ICONS[cat]; });
+      persistCategoryIcons();
+    }
+    function getCategoryIcon(cat){ return CATEGORY_ICONS[cat] || '💾'; }
 
     // ==== Инициализация ====
     async function loadTaxonomy(){
@@ -307,6 +404,9 @@
         PREDEFINED_CATEGORIES = DEFAULT_CATEGORIES.slice();
         PREDEFINED_TAGS = DEFAULT_TAGS.slice();
       }
+      loadCategoryIcons();
+      syncCategoryIcons();
+      PREDEFINED_TAGS.forEach(ensureTagColor);
     }
 
     async function loadDocuments(){
@@ -317,6 +417,7 @@
           .order('created_at',{ascending:false});
         if(error) throw error;
         allDocuments = data || [];
+        allDocuments.forEach(d=> (d.tags||[]).forEach(ensureTagColor));
         applyFilters();
         updateFilters();
         updateTagSuggestions();
@@ -331,6 +432,7 @@
       populateCategorySelect();
       populateCategoryFilter();
       populateTagSelector();
+      renderCategoryChips();
       updateTagSuggestions();
       await loadDocuments();
 
@@ -348,6 +450,7 @@
       PREDEFINED_CATEGORIES.forEach(c=>{
         const o=document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
       });
+      renderCategoryChips();
     }
     function populateCategoryFilter(){
       const select = document.getElementById('categoryFilter');
@@ -358,36 +461,57 @@
       });
       if(current && PREDEFINED_CATEGORIES.includes(current)) select.value=current;
     }
+    function renderCategoryChips(){
+      const wrap = document.getElementById('categoryChips');
+      if(!wrap) return;
+      wrap.innerHTML='';
+      PREDEFINED_CATEGORIES.forEach(cat=>{
+        const chip=document.createElement('span');
+        chip.className='chip';
+        chip.innerHTML=`<span class="chip-icon">${getCategoryIcon(cat)}</span><span>${cat}</span><button class="chip-action" title="Иконка" onclick="event.stopPropagation();promptCategoryIcon('${encodeURIComponent(cat)}')">${ICONS.gear}</button><button title="Удалить" onclick="event.stopPropagation();removeItem('categories','${encodeURIComponent(cat)}')">×</button>`;
+        wrap.appendChild(chip);
+      });
+    }
     function populateTagSelector(){
       const wrap = document.getElementById('tagSelector');
       wrap.innerHTML = '';
       PREDEFINED_TAGS.forEach(t=>{
         const el = document.createElement('div');
-        el.className='tag-option'; el.textContent=t;
+        el.className='tag-option';
+        el.dataset.tag=t;
+        ensureTagColor(t);
+        el.style.cssText=getTagStyle(t);
+        el.innerHTML = `<span>${t}</span><button class="tag-remove" title="Удалить" onclick="event.stopPropagation();removeInlineTag('${encodeURIComponent(t)}')">×</button>`;
         el.onclick=()=>toggleTag(t);
         wrap.appendChild(el);
       });
       updateTagSelector();
     }
-    function populateEditTagSelector(){
-      const wrap = document.getElementById('editTagSelector');
-      if(!wrap) return;
-      wrap.innerHTML='';
-      PREDEFINED_TAGS.forEach(t=>{
-        const el=document.createElement('div');
-        el.className='tag-option'; el.textContent=t;
-        if(selectedEditTags.includes(t)) el.classList.add('selected');
-        el.onclick=()=>toggleEditTag(t);
-        wrap.appendChild(el);
-      });
-    }
     function toggleTag(t){ const i=selectedTags.indexOf(t); if(i>-1) selectedTags.splice(i,1); else selectedTags.push(t); updateTagSelector(); }
     function updateTagSelector(){
       document.querySelectorAll('#tagSelector .tag-option').forEach(el=>{
-        const t=el.textContent; el.classList.toggle('selected', selectedTags.includes(t));
+        const t=el.dataset.tag; el.classList.toggle('selected', selectedTags.includes(t));
       });
     }
-    function toggleEditTag(t){ const i=selectedEditTags.indexOf(t); if(i>-1) selectedEditTags.splice(i,1); else selectedEditTags.push(t); populateEditTagSelector(); }
+    async function addInlineTag(){
+      const input=document.getElementById('newTagInput');
+      const val=(input.value||'').trim();
+      if(!val) return;
+      await addItem('tags', val);
+      input.value='';
+      toggleTag(val);
+    }
+    function removeInlineTag(encoded){
+      removeItem('tags', encoded);
+    }
+    async function addInlineCategory(){
+      const input=document.getElementById('newCategoryInput');
+      const val=(input.value||'').trim();
+      if(!val) return;
+      await addItem('categories', val);
+      input.value='';
+      document.getElementById('categorySelect').value=val;
+    }
 
     // ==== Поиск/фильтры ====
     function addSearchTag(tag){ if(!selectedSearchTags.includes(tag)){ selectedSearchTags.push(tag); renderSearchTags(); updateTagSuggestions(); applyFilters(); } }
@@ -434,13 +558,14 @@
         const tags=(doc.tags||[]).slice(0,3).map(t=>`<span class="preview-tag" style="${getTagStyle(t)}">${t}</span>`).join('') +
                       ((doc.tags||[]).length>3?`<span class="preview-tag" style="background: rgba(114,228,160,.2); color:#72E4A0;">+${(doc.tags.length-3)}</span>`:'');
         const cat=(doc.categories&&doc.categories[0])||'';
+        const catIcon=getCategoryIcon(cat);
         return `
           <div class="preview-card" onclick="openDocumentModal('${doc.id}')">
             <div class="preview-header">
-              <div class="preview-icon">📄</div>
+              <div class="preview-icon">${ICONS.file}</div>
               <div class="preview-info">
                 <div class="preview-title">${doc.title||'Без названия'}</div>
-                <div class="preview-category">${cat}</div>
+                <div class="preview-category"><span class="category-icon">${catIcon}</span>${cat}</div>
               </div>
             </div>
             <div class="preview-desc">${doc.description||'Нет описания'}</div>
@@ -460,8 +585,45 @@
     function quickFilterCategory(c){ document.getElementById('categoryFilter').value=c; applyFilters(); }
 
     // ==== Модалки загрузки ====
-    function openUploadModal(){ selectedTags=[]; document.getElementById('uploadModal').classList.add('active'); updateTagSelector(); }
-    function closeUploadModal(){ document.getElementById('uploadModal').classList.remove('active'); document.getElementById('uploadForm').reset(); document.getElementById('selectedFile').textContent=''; document.getElementById('aiStatus').style.display='none'; selectedTags=[]; updateTagSelector(); }
+    function openUploadModal(doc=null){
+      formMode = doc ? 'edit' : 'create';
+      editingDocument = doc;
+      const uploadModal=document.getElementById('uploadModal');
+      const fileInput=document.getElementById('fileInput');
+      const hint=document.getElementById('existingFileHint');
+      document.getElementById('uploadTitle').textContent = doc ? 'Редактировать документ' : 'Загрузить документ';
+      document.getElementById('uploadBtn').textContent = doc ? 'Сохранить' : 'Загрузить';
+      document.getElementById('aiStatus').style.display='none';
+      document.getElementById('selectedFile').textContent='';
+      fileInput.value='';
+      fileInput.required = !doc;
+      if(doc){
+        document.getElementById('titleInput').value = doc.title||'';
+        document.getElementById('descInput').value = doc.description||'';
+        document.getElementById('categorySelect').value = (doc.categories||[])[0]||'';
+        document.getElementById('actionsInput').value = (doc.actions||[]).join('\n');
+        document.getElementById('contentInput').value = doc.content||'';
+        selectedTags = (doc.tags||[]).slice();
+        hint.textContent = doc.filename ? `Текущий файл: ${doc.filename}` : '';
+      }else{
+        document.getElementById('uploadForm').reset();
+        selectedTags=[];
+        hint.textContent='';
+      }
+      updateTagSelector();
+      uploadModal.classList.add('active');
+      document.body.style.overflow='hidden';
+    }
+    function closeUploadModal(){
+      document.getElementById('uploadModal').classList.remove('active');
+      document.getElementById('uploadForm').reset();
+      document.getElementById('selectedFile').textContent='';
+      document.getElementById('aiStatus').style.display='none';
+      document.getElementById('existingFileHint').textContent='';
+      selectedTags=[]; editingDocument=null; formMode='create';
+      updateTagSelector();
+      document.body.style.overflow='auto';
+    }
 
     // ==== AI автозаполнение ====
     const GEMINI_API_KEY = 'AIzaSyBqGYEAw2ZMr-n-GG2EoyEZlkRyMtQl8bs';
@@ -503,34 +665,57 @@
       }
     });
 
-    document.getElementById('uploadForm').addEventListener('submit', async e=>{
-      e.preventDefault();
-      const file = document.getElementById('fileInput').files[0];
-      const title = document.getElementById('titleInput').value;
-      const description = document.getElementById('descInput').value;
-      const category = document.getElementById('categorySelect').value;
-      const actionsText = document.getElementById('actionsInput').value;
-      const contentText = document.getElementById('contentInput').value;
-      if(!file || !category) return;
+      document.getElementById('uploadForm').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const file = document.getElementById('fileInput').files[0];
+        const title = document.getElementById('titleInput').value;
+        const description = document.getElementById('descInput').value;
+        const category = document.getElementById('categorySelect').value;
+        const actionsText = document.getElementById('actionsInput').value;
+        const contentText = document.getElementById('contentInput').value;
+        if(!category){ alert('Выберите категорию'); return; }
 
-      const actions = actionsText ? actionsText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
-      const btn = document.getElementById('uploadBtn'); btn.disabled=true; btn.textContent='Загрузка...';
-      try{
-        const fileName = Date.now()+'_'+file.name;
-        const up = await supabase.storage.from('documents').upload(fileName, file);
-        if(up.error) throw up.error;
-        const { data:pub } = supabase.storage.from('documents').getPublicUrl(fileName);
-        const ins = await supabase.from('documents').insert([{
-          filename:file.name, file_url:pub.publicUrl, title, description,
-          categories:[category], tags:selectedTags, actions, content:contentText, lang:'ru', ai_filled:true
-        }]).select();
-        if(ins.error) throw ins.error;
-        alert('Документ загружен!');
-        closeUploadModal();
-        loadDocuments();
-      }catch(e){ console.error('Ошибка:', e); alert('Ошибка: '+e.message); }
-      finally{ btn.disabled=false; btn.textContent='Загрузить'; }
-    });
+        const actions = actionsText ? actionsText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+        const btn = document.getElementById('uploadBtn'); btn.disabled=true; btn.textContent=formMode==='edit'?'Сохранение...':'Загрузка...';
+        try{
+          if(formMode==='create'){
+            if(!file) { alert('Добавьте файл'); return; }
+            const fileName = Date.now()+'_'+file.name;
+            const up = await supabase.storage.from('documents').upload(fileName, file);
+            if(up.error) throw up.error;
+            const { data:pub } = supabase.storage.from('documents').getPublicUrl(fileName);
+            const ins = await supabase.from('documents').insert([{
+              filename:file.name, file_url:pub.publicUrl, title, description,
+              categories:[category], tags:selectedTags, actions, content:contentText, lang:'ru', ai_filled:true
+            }]).select();
+            if(ins.error) throw ins.error;
+            alert('Документ загружен!');
+          }else if(editingDocument){
+            let fileUrl=editingDocument.file_url;
+            let filename=editingDocument.filename;
+            if(file){
+              const newName = Date.now()+'_'+file.name;
+              const up = await supabase.storage.from('documents').upload(newName, file);
+              if(up.error) throw up.error;
+              const { data:pub } = supabase.storage.from('documents').getPublicUrl(newName);
+              fileUrl = pub.publicUrl; filename=file.name;
+              if(editingDocument.file_url){
+                const oldName = editingDocument.file_url.split('/').pop();
+                if(oldName) await supabase.storage.from('documents').remove([oldName]);
+              }
+            }
+            const { error } = await supabase.from('documents').update({
+              filename, file_url:fileUrl, title, description, categories:[category], tags:selectedTags, actions, content:contentText
+            }).eq('id', editingDocument.id);
+            if(error) throw error;
+            if(currentDocument && currentDocument.id===editingDocument.id){ Object.assign(currentDocument,{ filename, file_url:fileUrl, title, description, categories:[category], tags:selectedTags, actions, content:contentText }); }
+            alert('Документ обновлен!');
+          }
+          closeUploadModal();
+          loadDocuments();
+        }catch(e){ console.error('Ошибка:', e); alert('Ошибка: '+e.message); }
+        finally{ btn.disabled=false; btn.textContent='Загрузить'; }
+      });
 
     // ==== Просмотр и редактирование документа ====
     function previewDocument(){
@@ -545,34 +730,18 @@
     }
     function closePreview(e){ if(!e || e.target.id==='previewModal'){ document.getElementById('previewModal').classList.remove('active'); document.body.style.overflow='auto'; } }
 
-    function openDocumentModal(id){
-      currentDocument = allDocuments.find(d=>d.id===id); if(!currentDocument) return;
-      isEditMode=false; renderDocumentCard();
-      document.getElementById('modalOverlay').classList.add('active'); document.body.style.overflow='hidden';
-    }
-    function closeModal(){ document.getElementById('modalOverlay').classList.remove('active'); document.body.style.overflow='auto'; currentDocument=null; isEditMode=false; }
-    function closeModalOnOverlay(e){ if(e.target.id==='modalOverlay') closeModal(); }
+      function openDocumentModal(id){
+        currentDocument = allDocuments.find(d=>d.id===id); if(!currentDocument) return;
+        renderDocumentCard();
+        document.getElementById('modalOverlay').classList.add('active'); document.body.style.overflow='hidden';
+      }
+      function closeModal(){ document.getElementById('modalOverlay').classList.remove('active'); document.body.style.overflow='auto'; currentDocument=null; }
+      function closeModalOnOverlay(e){ if(e.target.id==='modalOverlay') closeModal(); }
 
-    function renderDocumentCard(){
-      if(!currentDocument) return;
-      const doc=currentDocument;
-      if(isEditMode){
-        selectedEditTags = (doc.tags||[]).slice();
-        const actionsText = (doc.actions||[]).join('\n');
-        let html = `
-          <div class="doc-title-edit"><input type="text" class="editable-input" id="editTitle" value="${doc.title||''}" placeholder="Название документа"></div>
-          <div class="doc-desc-edit"><textarea class="editable-input" id="editDesc" placeholder="Описание документа" style="min-height:60px;">${doc.description||''}</textarea></div>
-          <div class="doc-fields-row"><div class="doc-field-title">Категория:</div><div style="flex:1;"><select class="editable-input" id="editCategory">
-            ${PREDEFINED_CATEGORIES.map(c=>`<option value="${c}" ${doc.categories&&doc.categories[0]===c?'selected':''}>${c}</option>`).join('')}
-          </select></div></div>
-          <div class="doc-fields-row"><div class="doc-field-title">Теги:</div><div class="tag-selector" id="editTagSelector" style="flex:1;"></div></div>
-          <div class="doc-fields-row"><div class="doc-field-title">Действия:</div><div style="flex:1;"><textarea class="editable-input" id="editActions" placeholder="Каждое действие с новой строки" style="min-height:100px;">${actionsText}</textarea></div></div>
-          <div class="doc-fields-row"><div class="doc-field-title">Содержание:</div><div style="flex:1;"><textarea class="editable-input" id="editContent" placeholder="Содержание документа" style="min-height:120px;">${doc.content||''}</textarea></div></div>
-          <div class="edit-buttons"><button class="btn btn-secondary" onclick="cancelEdit()">Отмена</button><button class="btn btn-primary" onclick="saveEdit()">Сохранить</button></div>`;
-        document.getElementById('modalContent').innerHTML=html;
-        populateEditTagSelector();
-      }else{
-        let catsHtml=(doc.categories||[]).map(c=>`<span class="doc-tag">${c}</span>`).join('');
+      function renderDocumentCard(){
+        if(!currentDocument) return;
+        const doc=currentDocument;
+        let catsHtml=(doc.categories||[]).map(c=>`<span class="category-pill"><span class="category-icon">${getCategoryIcon(c)}</span>${c}</span>`).join('');
         let tagsHtml=(doc.tags||[]).map(t=>`<span class="doc-tag" style="${getTagStyle(t)}border-color:transparent;">${t}</span>`).join('');
         let actionsHtml='';
         if(doc.actions?.length){
@@ -588,33 +757,15 @@
           ${(doc.actions?.length)?`<div class="doc-section"><div class="section-label">Действия</div>${actionsHtml}</div>`:''}
           ${doc.content?`<div class="doc-section"><div class="section-label">Содержание</div><div class="doc-content">${doc.content}</div></div>`:''}
           <div class="doc-actions-bar">
-            <button class="icon-btn" onclick="previewDocument()" title="Просмотр">🔎</button>
-            <button class="icon-btn" onclick="editDocument()" title="Редактировать">✏️</button>
-            <a class="icon-btn" href="${doc.file_url}" download="${doc.filename}" target="_blank" title="Скачать">⬇️</a>
-            <button class="icon-btn delete" onclick="deleteDocument('${doc.id}')" title="Удалить">🗑️</button>
+            <button class="icon-btn" onclick="previewDocument()" title="Просмотр">${ICONS.view}</button>
+            <button class="icon-btn" onclick="editDocument()" title="Редактировать">${ICONS.edit}</button>
+            <a class="icon-btn" href="${doc.file_url}" download="${doc.filename}" target="_blank" title="Скачать">${ICONS.download}</a>
+            <button class="icon-btn delete" onclick="deleteDocument('${doc.id}')" title="Удалить">${ICONS.trash}</button>
           </div>`;
         document.getElementById('modalContent').innerHTML=html;
       }
-    }
-    function editDocument(){ isEditMode=true; renderDocumentCard(); }
-    function cancelEdit(){ isEditMode=false; renderDocumentCard(); }
-    async function saveEdit(){
-      if(!currentDocument) return;
-      const title=document.getElementById('editTitle').value;
-      const description=document.getElementById('editDesc').value;
-      const category=document.getElementById('editCategory').value;
-      const actionsText=document.getElementById('editActions').value;
-      const content=document.getElementById('editContent').value;
-      if(!category){ alert('Выберите категорию'); return; }
-      const actions = actionsText ? actionsText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
-      const { error } = await supabase.from('documents').update({
-        title, description, categories:[category], tags:selectedEditTags, actions, content
-      }).eq('id', currentDocument.id);
-      if(error){ alert('Ошибка: '+error.message); return; }
-      Object.assign(currentDocument,{ title, description, categories:[category], tags:selectedEditTags, actions, content });
-      isEditMode=false; renderDocumentCard(); loadDocuments();
-    }
-    function toggleActions(){
+      function editDocument(){ const doc=currentDocument; closeModal(); openUploadModal(doc); }
+      function toggleActions(){
       const list=document.getElementById('docActionsList'); const btn=event.target;
       if(list.classList.contains('collapsed')){ list.classList.remove('collapsed'); btn.textContent='Свернуть'; }
       else { list.classList.add('collapsed'); btn.textContent='Показать все ('+(currentDocument.actions?.length||0)+')'; }
@@ -640,7 +791,9 @@
       const list = (type==='tags')?PREDEFINED_TAGS:PREDEFINED_CATEGORIES;
       let html = '<div class="settings-list">';
       list.forEach(val=>{
-        html += `<span class="chip">${val}<button title="Удалить" onclick="removeItem('${type}','${encodeURIComponent(val)}')">×</button></span>`;
+        const icon = type==='categories'?`<span class="chip-icon">${getCategoryIcon(val)}</span>`:'';
+        const iconBtn = type==='categories'?`<button class="chip-action" title="Иконка" onclick="promptCategoryIcon('${encodeURIComponent(val)}')">${ICONS.gear}</button>`:'';
+        html += `<span class="chip">${icon}${val}${iconBtn}<button title="Удалить" onclick="removeItem('${type}','${encodeURIComponent(val)}')">×</button></span>`;
       });
       html += '</div>';
       html += `
@@ -653,43 +806,66 @@
       document.getElementById('settingsContent').innerHTML=html;
     }
 
-    async function addItem(type){
+    async function addItem(type, customVal){
       const input=document.getElementById('settingsInput');
-      const val=(input.value||'').trim().toLowerCase();
+      const raw = customVal!==undefined ? customVal : (input?.value||'');
+      const val=(raw||'').trim();
       if(!val) return;
       if(type==='tags' || type==='categories'){
+        if(type==='tags') ensureTagColor(val);
         const { error } = await supabase.rpc('taxonomy_add', { kind:type, value:val });
         if(error){ alert('Ошибка: '+error.message); return; }
       }
       await loadTaxonomy();
-      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); renderSettings(type);
-      input.value='';
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions(); renderSettings(type);
+      if(type==='categories') document.getElementById('categorySelect').value=val;
+      if(!customVal && input) input.value='';
     }
 
     async function removeItem(type, encodedVal){
-      const val=decodeURIComponent(encodedVal||'').trim().toLowerCase();
+      const valRaw = decodeURIComponent(encodedVal||'');
+      const val=valRaw.trim();
       if(!val) return;
       if(type==='tags' || type==='categories'){
         const { error } = await supabase.rpc('taxonomy_remove', { kind:type, value:val });
         if(error){ alert('Ошибка: '+error.message); return; }
       }
+      if(type==='categories' && CATEGORY_ICONS[val]){ delete CATEGORY_ICONS[val]; persistCategoryIcons(); }
       await loadTaxonomy();
-      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); renderSettings(type);
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions(); renderSettings(type);
     }
 
     async function resetDefaults(){
       const { error } = await supabase.from('taxonomy').update({ categories: DEFAULT_CATEGORIES, tags: DEFAULT_TAGS }).eq('slug','global');
       if(error){ alert('Ошибка: '+error.message); return; }
       await loadTaxonomy();
-      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions();
+      populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions();
       const t=document.getElementById('settingsTitle').textContent; renderSettings(t.includes('тег')?'tags':'categories');
+    }
+
+    function promptCategoryIcon(encodedCat){
+      const cat=decodeURIComponent(encodedCat||'');
+      if(!cat) return;
+      const current=getCategoryIcon(cat);
+      const icon=prompt('Введите эмодзи для категории или оставьте пустым для 💾', current);
+      if(icon===null) return;
+      CATEGORY_ICONS[cat]=(icon.trim()||'💾');
+      persistCategoryIcons();
+      renderCategoryChips();
+      renderDocuments(allDocuments);
+      if(currentDocument) renderDocumentCard();
+    }
+    function openCategoryIconPrompt(){
+      const cat=document.getElementById('categorySelect').value;
+      if(!cat){ alert('Сначала выберите категорию'); return; }
+      promptCategoryIcon(encodeURIComponent(cat));
     }
 
     // ==== Реалтайм ====
     function initRealtime(){
-      supabase.channel('taxonomy_changes')
-        .on('postgres_changes', { event:'*', schema:'public', table:'taxonomy' }, async ()=>{ await loadTaxonomy(); populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); populateEditTagSelector(); updateTagSuggestions(); applyFilters(); })
-        .subscribe();
+        supabase.channel('taxonomy_changes')
+          .on('postgres_changes', { event:'*', schema:'public', table:'taxonomy' }, async ()=>{ await loadTaxonomy(); populateCategorySelect(); populateCategoryFilter(); populateTagSelector(); updateTagSuggestions(); applyFilters(); })
+          .subscribe();
       supabase.channel('documents_changes')
         .on('postgres_changes', { event:'*', schema:'public', table:'documents' }, async ()=>{ await loadDocuments(); applyFilters(); })
         .subscribe();
@@ -703,7 +879,7 @@
         const uploadModal=document.getElementById('uploadModal');
         const settingsModal=document.getElementById('settingsOverlay');
         if(previewModal.classList.contains('active')) closePreview();
-        else if(mainModal.classList.contains('active')) { if(isEditMode) cancelEdit(); else closeModal(); }
+        else if(mainModal.classList.contains('active')) { closeModal(); }
         else if(uploadModal.classList.contains('active')) closeUploadModal();
         else if(settingsModal.classList.contains('active')) closeSettings();
       }
