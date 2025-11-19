@@ -261,7 +261,6 @@
               Добавить
             </button>
           </div>
-          <div class="settings-list" id="categoryChips"></div>
         </div>
 
         <div class="form-group">
@@ -334,7 +333,7 @@
       'Идентификация':'💳',
       'Медицина':'💊'
     };
-    const DEFAULT_TAGS = ['CAF','CADA','OFPRA','ANEF','France Travail','Credit Mutuel'];
+    const DEFAULT_TAGS = [];
     const TAG_COLOR_PALETTE = ['#72E4A0','#7FD7FF','#FFB870','#C792EA','#E57373','#64B5F6','#FFD54F','#4DD0E1','#A3E635','#F48FB1','#CE93D8','#9FA8DA'];
     const ICONS = {
       file:`<svg class="icon" viewBox="0 0 24 24"><path class="icon-dark" d="M7 4h6.6L17 7.4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path class="icon-dark" d="M13.5 4V8h4"/></svg>`,
@@ -447,7 +446,6 @@
       populateCategorySelect();
       populateCategoryFilter();
       populateTagSelector();
-      renderCategoryChips();
       updateTagSuggestions();
       await loadDocuments();
 
@@ -465,7 +463,6 @@
       PREDEFINED_CATEGORIES.forEach(c=>{
         const o=document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
       });
-      renderCategoryChips();
     }
     function populateCategoryFilter(){
       const select = document.getElementById('categoryFilter');
@@ -476,17 +473,6 @@
       });
       if(current && PREDEFINED_CATEGORIES.includes(current)) select.value=current;
     }
-    function renderCategoryChips(){
-      const wrap = document.getElementById('categoryChips');
-      if(!wrap) return;
-      wrap.innerHTML='';
-      PREDEFINED_CATEGORIES.forEach(cat=>{
-        const chip=document.createElement('span');
-        chip.className='chip';
-        chip.innerHTML=`<span class="chip-icon">${getCategoryIcon(cat)}</span><span>${cat}</span><button title="Удалить" onclick="event.stopPropagation();removeItem('categories','${encodeURIComponent(cat)}')">×</button>`;
-        wrap.appendChild(chip);
-      });
-    }
     function populateTagSelector(){
       const wrap = document.getElementById('tagSelector');
       wrap.innerHTML = '';
@@ -496,7 +482,7 @@
         el.dataset.tag=t;
         ensureTagColor(t);
         el.style.cssText=getTagStyle(t);
-        el.innerHTML = `<span>${t}</span><button class="tag-remove" title="Удалить" onclick="event.stopPropagation();removeInlineTag('${encodeURIComponent(t)}')">×</button>`;
+        el.innerHTML = `<span>${t}</span>`;
         el.onclick=()=>toggleTag(t);
         wrap.appendChild(el);
       });
@@ -515,9 +501,6 @@
       await addItem('tags', val);
       input.value='';
       toggleTag(val);
-    }
-    function removeInlineTag(encoded){
-      removeItem('tags', encoded);
     }
     async function addInlineCategory(){
       const input=document.getElementById('newCategoryInput');
@@ -894,7 +877,6 @@
       if(icon===null) return;
       CATEGORY_ICONS[cat]=(icon.trim()||'💾');
       persistCategoryIcons();
-      renderCategoryChips();
       renderDocuments(allDocuments);
       if(currentDocument) renderDocumentCard();
     }
