@@ -52,6 +52,8 @@
     .menu-item:hover{background:#2a2d2f;color:#F3F6F8;}
     .menu-item.active{background:rgba(114,228,160,.15);color:#72E4A0;}
     .item-count{font-size:12px;color:#6a6d6f;background:#2a2d2f;padding:2px 6px;border-radius:4px;}
+    .menu-tag-label{display:flex;align-items:center;gap:8px;}
+    .tag-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,0.03);flex-shrink:0;}
     main{flex:1;display:flex;flex-direction:column;padding:32px 40px;overflow-y:auto;}
     .main-header{margin-bottom:24px;}
     .main-title{font-size:28px;font-weight:600;margin:0 0 8px 0;}
@@ -196,6 +198,13 @@
       <select class="search-input" id="categoryFilter">
         <option value="">Все категории</option>
       </select>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-header">
+        <div class="menu-title">Теги</div>
+      </div>
+      <div id="tagMenuList"></div>
     </div>
   </aside>
 
@@ -371,6 +380,16 @@
       return tagColorMap[tag];
     }
     function getTagStyle(tag){ const c=ensureTagColor(tag); return `background:${c.bg}; color:${c.text};`; }
+    function getAvailableTags(){
+      const set = new Set(PREDEFINED_TAGS);
+      allDocuments.forEach(doc => (doc.tags||[]).forEach(t => set.add(t)));
+      return Array.from(set);
+    }
+    function getTagUsage(){
+      const counts = {};
+      allDocuments.forEach(doc => (doc.tags||[]).forEach(t =>{ counts[t]=(counts[t]||0)+1; ensureTagColor(t); }));
+      return counts;
+    }
     function persistCategoryIcons(){ try{ localStorage.setItem('categoryIcons', JSON.stringify(CATEGORY_ICONS)); }catch(e){ console.warn('Icon save',e); } }
     function loadCategoryIcons(){
       try{ const saved = JSON.parse(localStorage.getItem('categoryIcons')||'{}'); CATEGORY_ICONS = saved || {}; }
@@ -412,6 +431,8 @@
         if(error) throw error;
         allDocuments = data || [];
         allDocuments.forEach(d=> (d.tags||[]).forEach(ensureTagColor));
+        populateTagSelector();
+        renderTagMenu();
         applyFilters();
         updateFilters();
         updateTagSuggestions();
@@ -469,7 +490,7 @@
     function populateTagSelector(){
       const wrap = document.getElementById('tagSelector');
       wrap.innerHTML = '';
-      PREDEFINED_TAGS.forEach(t=>{
+      getAvailableTags().forEach(t=>{
         const el = document.createElement('div');
         el.className='tag-option';
         el.dataset.tag=t;
@@ -508,8 +529,8 @@
     }
 
     // ==== Поиск/фильтры ====
-    function addSearchTag(tag){ if(!selectedSearchTags.includes(tag)){ selectedSearchTags.push(tag); renderSearchTags(); updateTagSuggestions(); applyFilters(); } }
-    function removeSearchTag(tag){ const i=selectedSearchTags.indexOf(tag); if(i>-1){ selectedSearchTags.splice(i,1); renderSearchTags(); updateTagSuggestions(); applyFilters(); } }
+    function addSearchTag(tag){ if(!selectedSearchTags.includes(tag)){ selectedSearchTags.push(tag); renderSearchTags(); renderTagMenu(); updateTagSuggestions(); applyFilters(); } }
+    function removeSearchTag(tag){ const i=selectedSearchTags.indexOf(tag); if(i>-1){ selectedSearchTags.splice(i,1); renderSearchTags(); renderTagMenu(); updateTagSuggestions(); applyFilters(); } }
     function renderSearchTags(){
       const c=document.getElementById('selectedSearchTags'); c.innerHTML='';
       selectedSearchTags.forEach(tag=>{
@@ -518,6 +539,35 @@
         c.appendChild(el);
       });
     }
+    function renderTagMenu(){
+      const wrap=document.getElementById('tagMenuList');
+      if(!wrap) return;
+      const usage=getTagUsage();
+      const tags=Object.keys(usage);
+      if(!tags.length){
+        wrap.innerHTML='<div class="menu-item" style="opacity:.7;cursor:default;">Теги появятся после загрузки</div>';
+        return;
+      }
+      wrap.innerHTML='';
+      tags.sort((a,b)=>usage[b]-usage[a]||a.localeCompare(b)).forEach(tag=>{
+        const item=document.createElement('div');
+        item.className='menu-item'+(selectedSearchTags.includes(tag)?' active':'');
+        item.onclick=()=>toggleTagFilter(tag);
+        const label=document.createElement('div');
+        label.className='menu-tag-label';
+        const dot=document.createElement('span');
+        dot.className='tag-dot';
+        const colors=ensureTagColor(tag);
+        dot.style.background=colors.text;
+        dot.style.boxShadow=`0 0 0 3px ${colors.bg}`;
+        label.appendChild(dot);
+        const text=document.createElement('span'); text.textContent=tag; label.appendChild(text);
+        const count=document.createElement('span'); count.className='item-count'; count.textContent=usage[tag];
+        item.appendChild(label); item.appendChild(count);
+        wrap.appendChild(item);
+      });
+    }
+    function toggleTagFilter(tag){ selectedSearchTags.includes(tag)?removeSearchTag(tag):addSearchTag(tag); }
     function updateTagSuggestions(){
       let all=[];
       allDocuments.forEach(d=> (d.tags||[]).forEach(t=>{ if(!all.includes(t)&&!selectedSearchTags.includes(t)) all.push(t); }));
@@ -575,7 +625,7 @@
       PREDEFINED_CATEGORIES.forEach(c=>{ html+=`<div class="menu-item" onclick="quickFilterCategory('${c}')">${c}<span class="item-count">${counts[c]||0}</span></div>`; });
       catList.innerHTML=html;
     }
-    function clearFilters(){ document.getElementById('textSearch').value=''; document.getElementById('categoryFilter').value=''; document.getElementById('tagsAndMode').checked=false; selectedSearchTags=[]; renderSearchTags(); updateTagSuggestions(); applyFilters(); }
+    function clearFilters(){ document.getElementById('textSearch').value=''; document.getElementById('categoryFilter').value=''; document.getElementById('tagsAndMode').checked=false; selectedSearchTags=[]; renderSearchTags(); renderTagMenu(); updateTagSuggestions(); applyFilters(); }
     function quickFilterCategory(c){ document.getElementById('categoryFilter').value=c; applyFilters(); }
 
     // ==== Модалки загрузки ====
