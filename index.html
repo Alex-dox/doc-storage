@@ -63,6 +63,7 @@
     .preview-card:hover{border-color:#72E4A0;transform:translateY(-2px);box-shadow:0 4px 12px rgba(114,228,160,.15);}
     .preview-header{display:flex;gap:12px;margin-bottom:12px;}
     .preview-icon{width:48px;height:48px;background:#2a2d2f;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .preview-icon .category-glyph{font-size:24px;line-height:1;}
     .preview-info{flex:1;min-width:0;}
     .preview-title{font-size:16px;font-weight:600;margin-bottom:4px;color:#F3F6F8;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .preview-category{font-size:12px;color:#74cba4;font-weight:500;}
@@ -555,7 +556,7 @@
         return `
           <div class="preview-card" onclick="openDocumentModal('${doc.id}')">
             <div class="preview-header">
-              <div class="preview-icon">${ICONS.file}</div>
+              <div class="preview-icon"><span class="category-glyph">${catIcon}</span></div>
               <div class="preview-info">
                 <div class="preview-title">${doc.title||'Без названия'}</div>
                 <div class="preview-category"><span class="category-icon">${catIcon}</span>${cat}</div>
