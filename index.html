@@ -647,8 +647,7 @@
       if(file){
         document.getElementById('selectedFile').textContent='Выбран: '+file.name;
         document.getElementById('titleInput').value=file.name.replace(/\.[^/.]+$/,'');
-      }
-
+});
       document.getElementById('uploadForm').addEventListener('submit', async e=>{
         e.preventDefault();
         const file = document.getElementById('fileInput').files[0];
