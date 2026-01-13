@@ -640,35 +640,6 @@
       document.body.style.overflow='auto';
     }
 
-    // ==== AI автозаполнение ====
-    const GEMINI_API_KEY = 'AIzaSyBqGYEAw2ZMr-n-GG2EoyEZlkRyMtQl8bs';
-    async function analyzeDocumentWithGemini(file){
-      const aiStatus=document.getElementById('aiStatus');
-      aiStatus.className='ai-status analyzing'; aiStatus.textContent='🤖 Анализирую документ...';
-      try{
-        const base64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
-        const prompt = 'Проанализируй этот документ и верни JSON со следующими полями:\n- title...\n- description...\n- category из: '+PREDEFINED_CATEGORIES.join(', ')+'\n- tags из: '+PREDEFINED_TAGS.join(', ')+'\n- actions[]\n- content\nВерни только валидный JSON без дополнительного текста.';
-        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_API_KEY, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ contents:[{ parts:[{text:prompt},{ inline_data:{ mime_type:file.type, data:base64 } }]}] })
-        });
-        if(!resp.ok) throw new Error('API Error');
-        const data = await resp.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const json = JSON.parse((text.match(/\{[\s\S]*\}/)||['{}'])[0]);
-        document.getElementById('titleInput').value = json.title || '';
-        document.getElementById('descInput').value = json.description || '';
-        document.getElementById('categorySelect').value = json.category || '';
-        document.getElementById('actionsInput').value = (json.actions||[]).join('\n');
-        document.getElementById('contentInput').value = json.content || '';
-        selectedTags = (json.tags||[]).filter(t=>PREDEFINED_TAGS.includes(t));
-        updateTagSelector();
-        aiStatus.style.display='none';
-      }catch(e){
-        console.error('AI Error:', e);
-        aiStatus.className='ai-status error'; aiStatus.textContent='⚠️ Не удалось проанализировать. Заполните вручную';
-      }
-    }
 
     // ==== Загрузка файлов/создание документа ====
     document.getElementById('fileInput').addEventListener('change', e=>{
@@ -676,9 +647,7 @@
       if(file){
         document.getElementById('selectedFile').textContent='Выбран: '+file.name;
         document.getElementById('titleInput').value=file.name.replace(/\.[^/.]+$/,'');
-        analyzeDocumentWithGemini(file);
       }
-    });
 
       document.getElementById('uploadForm').addEventListener('submit', async e=>{
         e.preventDefault();
